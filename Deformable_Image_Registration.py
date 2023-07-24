@@ -328,15 +328,23 @@ display_images(resampled_moving_image, "Resampled Moving Image after Transformat
 # In[ ]:
 # Import the necessary filter
 
-# Configure and run the Demons Registration
+# Define function to apply the Demons Registration algorithm
 def apply_demons_algorithm(fixed_image, moving_image, iterations=50):
     demons_filter = DemonsRegistrationFilter()
     demons_filter.SetNumberOfIterations(iterations)
     demons_transform = demons_filter.Execute(fixed_image, moving_image)
     return demons_transform
 
-# Set the path for the output demons transformation
+# Define function to resample the moving image with a given transform
+def resample_moving_image(fixed_image, moving_image, transform):
+    resampler = sitk.ResampleImageFilter()
+    resampler.SetReferenceImage(fixed_image)
+    resampler.SetTransform(transform)
+    return resampler.Execute(moving_image)
+
+# Set the paths for the output demons transformation and resampled image
 output_demons_transform_path = os.path.join(output_path, "demons_transformation.tfm")
+output_resampled_image_path = os.path.join(output_path, "resampled_moving_image_demons.mha")
 
 # Check if the transform already exists. If not, compute it.
 if os.path.exists(output_demons_transform_path):
@@ -345,16 +353,13 @@ else:
     demons_transform = apply_demons_algorithm(fixed_image, resampled_moving_image)
     sitk.WriteTransform(demons_transform, output_demons_transform_path)
 
-# Resample the moving image onto the fixed image's grid using the demons transform
-resampler = sitk.ResampleImageFilter()
-resampler.SetReferenceImage(fixed_image)
-resampler.SetTransform(demons_transform)
-resampled_moving_image_demons = resampler.Execute(moving_image)
-
-# Save the resampled image
-output_resampled_image_path = os.path.join(output_path, "resampled_moving_image_demons.mha")
-writer.SetFileName(output_resampled_image_path)
-writer.Execute(resampled_moving_image_demons)
+# Check if the resampled moving image already exists. If not, compute it.
+if os.path.exists(output_resampled_image_path):
+    resampled_moving_image_demons = sitk.ReadImage(output_resampled_image_path)
+else:
+    resampled_moving_image_demons = resample_moving_image(fixed_image, moving_image, demons_transform)
+    writer.SetFileName(output_resampled_image_path)
+    writer.Execute(resampled_moving_image_demons)
 
 # Display the images after transformation
 display_images(fixed_image, "Fixed Image after Demons Transformation")
