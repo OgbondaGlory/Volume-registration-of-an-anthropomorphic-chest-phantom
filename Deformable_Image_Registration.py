@@ -16,6 +16,7 @@ from SimpleITK import DemonsRegistrationFilter
 # In[2]:
 
 
+
 def segment_lung(image):
     # Apply a threshold to separate lung pixels from others
     thresh_filter = sitk.ThresholdImageFilter()
@@ -166,7 +167,11 @@ display_images(bone_mask, "Segmented Bones")
 #
 
 # In[23]:
-
+def generate_checkerboard(fixed_image, moving_image, pattern=(5,5,5)):
+    checkerboard_filter = sitk.CheckerBoardImageFilter()
+    checkerboard_filter.SetCheckerPattern(pattern)
+    checker_image = checkerboard_filter.Execute(fixed_image, moving_image)
+    return checker_image
 
 # Paths to the DICOM directories
 
@@ -237,7 +242,11 @@ else:
 # Display the images after transformation
 display_images(fixed_image, "Fixed Image after Transformation")
 display_images(resampled_moving_image, "Resampled Moving Image after Transformation")
-
+# Generate checkerboard for Rigid Registration
+resampled_moving_image = sitk.ReadImage(output_path + "/rigid_registration.mha")
+checker_image = generate_checkerboard(fixed_image, resampled_moving_image)
+# Display the checkerboard image for B-Spline deformation
+display_images(checker_image, "Checkerboard for Rigid Registration")
 
 # ______________________
 
@@ -318,6 +327,11 @@ else:
 # Display the images after transformation
 display_images(fixed_image, "Fixed Image after Transformation")
 display_images(resampled_moving_image, "Resampled Moving Image after Transformation")
+# Generate checkerboard for B-Spline deformation
+resampled_moving_image_deformable = sitk.ReadImage(output_path + "/deformable_registration.mha")
+checker_image_deformable = generate_checkerboard(fixed_image, resampled_moving_image_deformable)
+# Display the checkerboard image for B-Spline deformation
+display_images(checker_image_deformable, "Checkerboard for B-Spline deformation")
 
 
 
@@ -364,3 +378,8 @@ else:
 # Display the images after transformation
 display_images(fixed_image, "Fixed Image after Demons Transformation")
 display_images(resampled_moving_image_demons, "Resampled Moving Image after Demons Transformation")
+# Generate checkerboard for Demons registration
+resampled_moving_image_demons = sitk.ReadImage(output_path + "/resampled_moving_image_demons.mha")
+checker_image_demons = generate_checkerboard(fixed_image, resampled_moving_image_demons)
+# Display the checkerboard image for Demons registration
+display_images(checker_image_demons, "Checkerboard for Demons registration")
