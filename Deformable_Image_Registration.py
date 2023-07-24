@@ -8,13 +8,9 @@
 import sys
 import os
 import numpy as np
-# import pydicom
 import matplotlib.pyplot as plt
-# import pandas as pd
-# import seaborn as sns
-# import ipyvolume as ipv
 import SimpleITK as sitk
-# import ipywidgets as widgets
+from SimpleITK import DemonsRegistrationFilter
 
 
 # In[2]:
@@ -100,17 +96,6 @@ def display_images(image, title, montage_slices=10):
 
     # Normalize to 0-255
     image_array = ((image_array - image_array.min()) * (1/(image_array.max() - image_array.min()) * 255)).astype('uint8')
-
-#     # 3D visualization using ipyvolume
-#     ipv.figure()
-#     ipv.volshow(image_array, level=[0.25, 0.75], opacity=0.03, level_width=0.1, data_min=0, data_max=255)
-#     fig3d = ipv.gcc()
-
-#     # Create a layout with a title
-#     title_widget = widgets.HTML(f'<h2>{title} - 3D View</h2>')
-#     layout = widgets.VBox([title_widget, fig3d])
-#     display(layout)
-
     # Montage of slices using matplotlib
     fig = plt.figure(figsize=(10, 2))
     fig.suptitle(title + " - Slice View")
@@ -129,8 +114,8 @@ def display_images(image, title, montage_slices=10):
 if len(sys.argv) != 3:
     raise IOError("Invalid cmd line,\nUsage: " + sys.argv[0] + "   DICOM_PATH   OUTPUT_PATH")
 
-data_path = r"SE000003"
-moving_image_path = r"SE000003"
+data_path = r"Phantom_CT_Scan"
+moving_image_path = r"Phantom_CT_Scan"
 fixed_image_path = sys.argv[1]
 output_path = sys.argv[2]
 
@@ -338,92 +323,39 @@ display_images(resampled_moving_image, "Resampled Moving Image after Transformat
 
 # ______________________________________
 
-#  ## Deep learning-based Deformable registration methods using neural networks to learn the transformation between images.
+#  ## Apply Demons Algorithim.
 
 # In[ ]:
+# Import the necessary filter
 
+# Configure and run the Demons Registration
+def apply_demons_algorithm(fixed_image, moving_image, iterations=50):
+    demons_filter = DemonsRegistrationFilter()
+    demons_filter.SetNumberOfIterations(iterations)
+    demons_transform = demons_filter.Execute(fixed_image, moving_image)
+    return demons_transform
 
-# import os
-# import torch
-# import numpy as np
-# import SimpleITK as sitk
-# from torch.utils.data import Dataset, DataLoader
-# from scipy.ndimage import map_coordinates
-# import voxelmorph as vxm  # make sure to install the voxelmorph package
+# Set the path for the output demons transformation
+output_demons_transform_path = os.path.join(output_path, "demons_transformation.tfm")
 
-# # Load a pretrained model
-# model = vxm.networks.VxmDense()
-# model.load_weights('path_to_your_pretrained_model.h5')
+# Check if the transform already exists. If not, compute it.
+if os.path.exists(output_demons_transform_path):
+    demons_transform = sitk.ReadTransform(output_demons_transform_path)
+else:
+    demons_transform = apply_demons_algorithm(fixed_image, resampled_moving_image)
+    sitk.WriteTransform(demons_transform, output_demons_transform_path)
 
-# class CTScanDataset(Dataset):
-#     def __init__(self, directory_path):
-#         self.files = [os.path.join(directory_path, f) for f in os.listdir(directory_path) if f.endswith('.dcm')]
+# Resample the moving image onto the fixed image's grid using the demons transform
+resampler = sitk.ResampleImageFilter()
+resampler.SetReferenceImage(fixed_image)
+resampler.SetTransform(demons_transform)
+resampled_moving_image_demons = resampler.Execute(moving_image)
 
-#     def __len__(self):
-#         return len(self.files)
+# Save the resampled image
+output_resampled_image_path = os.path.join(output_path, "resampled_moving_image_demons.mha")
+writer.SetFileName(output_resampled_image_path)
+writer.Execute(resampled_moving_image_demons)
 
-#     def __getitem__(self, idx):
-#         # Use SimpleITK to read the DICOM file
-#         image = sitk.ReadImage(self.files[idx])
-
-#         # Convert the image to a numpy array
-#         image_array = sitk.GetArrayFromImage(image)
-
-#         # Rescale the intensities to the range [0, 1]
-#         image_array = (image_array - image_array.min()) / (image_array.max() - image_array.min())
-
-#         return image_array
-
-# def preprocess(image_array):
-#     # Add extra dimension for channels
-#     image_array = image_array[np.newaxis, ...]
-
-#     # Convert the numpy array to a PyTorch tensor
-#     image_tensor = torch.from_numpy(image_array)
-
-#     return image_tensor
-
-# def apply_displacement_field(moving_image_array, displacement_field):
-#     # Create a grid of coordinates
-#     coords = np.mgrid[0:moving_image_array.shape[0], 0:moving_image_array.shape[1], 0:moving_image_array.shape[2]]
-
-#     # Add the displacement field to the coordinates
-#     coords += displacement_field
-
-#     # Use map_coordinates to apply the displacement field
-#     warped_moving_image_array = map_coordinates(moving_image_array, coords, order=3)
-
-#     return warped_moving_image_array
-
-# def display_images(image_array):
-#     ipv.figure()
-#     ipv.volshow(image_array, level=[0.25, 0.75], opacity=0.03, level_width=0.1, data_min=0, data_max=255)
-#     ipv.show()
-
-# # Paths to the DICOM directories
-# fixed_image_path = r"C:\Users\HP\Documents\GitHub\3D-3D_Image_Registration\SE000003"
-# moving_image_path = r"C:\Users\HP\Documents\GitHub\3D-3D_Image_Registration\SE000003"
-
-# # Load the DICOM images
-# fixed_image = CTScanDataset(fixed_image_path)
-# moving_image = CTScanDataset(moving_image_path)
-
-# # Convert to tensors
-# fixed_image_tensor = preprocess(fixed_image[0])  # Assume there's one 3D image per directory
-# moving_image_tensor = preprocess(moving_image[0])  # Assume there's one 3D image per directory
-
-# # Pass images through model to get displacement field
-# displacement_field = model.predict([fixed_image_tensor.float().unsqueeze(0), moving_image_tensor.float().unsqueeze(0)])
-
-# # Convert displacement field back to numpy
-# displacement_field = displacement_field.detach().numpy()
-
-# # Apply displacement field to moving image
-# warped_moving_image_array = apply_displacement_field(moving_image_tensor.numpy(), displacement_field)
-
-# # Display the images after transformation
-# display_images(fixed_image[0])
-# display_images(warped_moving_image_array)
-
-
-#
+# Display the images after transformation
+display_images(fixed_image, "Fixed Image after Demons Transformation")
+display_images(resampled_moving_image_demons, "Resampled Moving Image after Demons Transformation")
