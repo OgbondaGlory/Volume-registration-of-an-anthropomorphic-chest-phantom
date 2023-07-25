@@ -298,7 +298,7 @@ if os.path.exists(output_path + "/deformable_transformation.tfm") and os.path.ex
 else:
     # Now set up the deformable registration (B-spline)
     deformable_registration_method = sitk.ImageRegistrationMethod()
-    # deformable_registration_method.SetMetricAsMeanSquares()
+    # deformable_registration_method.SetMetricAsCorrealtion()
     deformable_registration_method.SetMetricAsCorrelation()
     deformable_registration_method.SetOptimizerAsLBFGSB(gradientConvergenceTolerance=1e-5, numberOfIterations=100)
     deformable_registration_method.SetInterpolator(sitk.sitkLinear)
@@ -327,6 +327,12 @@ else:
     # composite_transform = sitk.Transform(fixed_image.GetDimension(), sitk.sitkComposite)
     # composite_transform.AddTransform(final_transform_v1)
     # composite_transform.AddTransform(final_deformable_transform)
+    
+    # Combine the affine and deformable transforms
+    composite_transform = sitk.CompositeTransform(fixed_image.GetDimension())
+    composite_transform.AddTransform(final_transform_v1)
+    composite_transform.AddTransform(final_deformable_transform)
+
 
     sitk.WriteTransform(final_deformable_transform, output_path + "/deformable_transformation.tfm")
     # sitk.WriteTransform(composite_transform, output_path + "/composite_transform.tfm")
