@@ -269,24 +269,6 @@ display_images(checker_image, "Checkerboard for Rigid Registration")
 
 # In[ ]:
 
-
-# # Apply the affine transformation
-# affine_registration_method = sitk.ImageRegistrationMethod()
-# # affine_registration_method.SetMetricAsMeanSquares()
-# affine_registration_method.SetMetricAsCorrelation()
-# affine_registration_method.SetOptimizerAsGradientDescent(learningRate=1.0, numberOfIterations=100, convergenceMinimumValue=1e-6, convergenceWindowSize=10)
-# affine_registration_method.SetInterpolator(sitk.sitkLinear)
-
-# initial_affine_transform = sitk.CenteredTransformInitializer(fixed_image,
-#                                                               moving_image,
-#                                                               sitk.Euler3DTransform(),
-#                                                               sitk.CenteredTransformInitializerFilter.GEOMETRY)
-
-# affine_registration_method.SetInitialTransform(initial_affine_transform, inPlace=False)
-# final_affine_transform = affine_registration_method.Execute(sitk.Cast(fixed_image, sitk.sitkFloat32),
-#                                                              sitk.Cast(moving_image, sitk.sitkFloat32))
-
-
 # In[ ]:
 if os.path.exists(output_path + "/deformable_transformation.tfm") and os.path.exists(output_path + "/composite_transform.tfm") and os.path.exists(output_path + "/deformable_registration.mha"):
     final_deformable_transform = sitk.ReadTransform(output_path + "/deformable_transformation.mha")
@@ -305,9 +287,14 @@ else:
 
     # Initialize the B-spline transform
     transform_domain_physical_dim_size = fixed_image.GetSize()
-    transform_domain_mesh_size = [size//8 for size in transform_domain_physical_dim_size] # Arbitrary mesh size, you might need to adjust this
+    transform_domain_mesh_size = [size//4 for size in transform_domain_physical_dim_size] # Finer mesh size
     initial_deformable_transform = sitk.BSplineTransformInitializer(image1=fixed_image,
                                                                     transformDomainMeshSize=transform_domain_mesh_size, order=3)
+
+    # Use a multi-resolution strategy
+    deformable_registration_method.SetShrinkFactorsPerLevel(shrinkFactors = [4,2,1])
+    deformable_registration_method.SetSmoothingSigmasPerLevel(smoothingSigmas = [2,1,0])
+    deformable_registration_method.SmoothingSigmasAreSpecifiedInPhysicalUnitsOn()
 
     deformable_registration_method.SetInitialTransform(initial_deformable_transform)
 
@@ -322,12 +309,6 @@ else:
 
 # In[ ]:
 
-
-    # Combine the affine and deformable transforms
-    # composite_transform = sitk.Transform(fixed_image.GetDimension(), sitk.sitkComposite)
-    # composite_transform.AddTransform(final_transform_v1)
-    # composite_transform.AddTransform(final_deformable_transform)
-    
     # Combine the affine and deformable transforms
     composite_transform = sitk.CompositeTransform(fixed_image.GetDimension())
     composite_transform.AddTransform(final_transform_v1)
