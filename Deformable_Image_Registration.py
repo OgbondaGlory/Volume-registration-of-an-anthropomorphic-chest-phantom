@@ -21,32 +21,13 @@ from skimage.metrics import structural_similarity as ssim
 
 
 from utils import *
+from RigidDeformation import perform_rigid_registration
+from DeformableBsplineRegistration import perform_deformable_bspline_registration
+from DemonsRegistration import apply_demons_algorithm, resample_moving_image
 
 
 # !pip install numpy-stl
 # In[2]:
-
-
-
-
-
-# In[3]:
-
-
-
-
-# In[4]:
-
-
-
-
-# In[5]:
-
-
-
-# In[6]:
-
-
 # Loading the Data
 if len(sys.argv) != 3:
     raise IOError("Invalid cmd line,\nUsage: " + sys.argv[0] + "   DICOM_PATH   OUTPUT_PATH")
@@ -134,52 +115,10 @@ display_images(fixed_image, "Fixed Image patient's CT scan")
 display_images(moving_image, "Moving Image CT scan of the phantom")
 
 
+
 # In[11]:
-
-# Rigid Registration
-if os.path.exists(output_path + "/rigid_transformation.tfm") and os.path.exists(output_path + "/rigid_registration.mha"):
-    final_transform_v1 = sitk.ReadTransform(output_path + "/rigid_transformation.tfm")
-
-    reader.SetFileName(output_path + "/rigid_registration.mha")
-    resampled_moving_image = reader.Execute()
-
-else:
-    # Apply the transformation
-    registration_method = sitk.ImageRegistrationMethod()
-    # registration_method.SetMetricAsMeanSquares()
-    registration_method.SetMetricAsCorrelation()
-    registration_method.SetOptimizerAsGradientDescent(learningRate=1.0, numberOfIterations=100, convergenceMinimumValue=1e-6, convergenceWindowSize=10)
-    registration_method.SetInterpolator(sitk.sitkLinear)
-
-    initial_transform = sitk.CenteredTransformInitializer(fixed_image,
-                                                          moving_image,
-                                                          sitk.Euler3DTransform(),
-                                                          sitk.CenteredTransformInitializerFilter.GEOMETRY)
-
-    registration_method.SetInitialTransform(initial_transform, inPlace=False)
-
-    print("********************************************************************************")
-    print("* Rigid registration                                                            ")
-    print("********************************************************************************")
-    registration_method.AddCommand(sitk.sitkIterationEvent, lambda: iteration_callback(registration_method))
-
-    final_transform_v1 = registration_method.Execute(sitk.Cast(fixed_image, sitk.sitkFloat32),
-                                                     sitk.Cast(moving_image, sitk.sitkFloat32))
-
-    sitk.WriteTransform(final_transform_v1, output_path + "/rigid_transformation.tfm")
-
-    # Resample the moving image onto the fixed image's grid
-    resampler = sitk.ResampleImageFilter()
-    resampler.SetReferenceImage(fixed_image)
-    resampler.SetTransform(final_transform_v1)
-    resampled_moving_image = resampler.Execute(moving_image)
-
-    writer.SetFileName(output_path + "/rigid_registration.mha")
-    writer.Execute(resampled_moving_image)
-
-
-
-# In[12]:
+# Call the rigid registration function
+final_transform_v1, resampled_moving_image = perform_rigid_registration(fixed_image, moving_image, output_path)
 
 # Display the images after transformation
 display_images(fixed_image, "Fixed Image after Transformation")
@@ -189,6 +128,7 @@ display_images(resampled_moving_image, "Resampled Moving Image after Transformat
 checker_image = generate_checkerboard(fixed_image, resampled_moving_image)
 # Display the checkerboard image for B-Spline deformation
 display_images(checker_image, "Checkerboard for Rigid Registration")
+
 
 # In[]:
 #Extracting the ISO Surfaces for Rigid Registration
@@ -218,70 +158,14 @@ save_iso_surface(verts, faces, output_iso_surface_file_path)
 #
 # The general approach to deformable registration in SimpleITK involves setting up an ImageRegistrationMethod with a BSplineTransformInitializer. The parameters of this initial B-spline transform are then optimized during the registration process to achieve the best alignment.
 
-
-# In[14]:
-if os.path.exists(output_path + "/deformable_transformation.tfm") and os.path.exists(output_path + "/composite_transform.tfm") and os.path.exists(output_path + "/deformable_registration.mha"):
-    final_deformable_transform = sitk.ReadTransform(output_path + "/deformable_transformation.mha")
-    composite_transform = sitk.ReadTransform(output_path + "/composite_transform.mha")
-
-    reader.SetFileName(output_path + "/deformable_registration.mha")
-    resampled_moving_image_deformable = reader.Execute()
-
-else:
-    # Now set up the deformable registration (B-spline)
-    deformable_registration_method = sitk.ImageRegistrationMethod()
-    # deformable_registration_method.SetMetricAsCorrealtion()
-    deformable_registration_method.SetMetricAsCorrelation()
-    deformable_registration_method.SetOptimizerAsLBFGSB(gradientConvergenceTolerance=1e-5, numberOfIterations=100)
-    deformable_registration_method.SetInterpolator(sitk.sitkLinear)
-
-    # Initialize the B-spline transform
-    transform_domain_physical_dim_size = fixed_image.GetSize()
-    transform_domain_mesh_size = [size//4 for size in transform_domain_physical_dim_size] # Finer mesh size
-    initial_deformable_transform = sitk.BSplineTransformInitializer(image1=fixed_image,
-                                                                    transformDomainMeshSize=transform_domain_mesh_size, order=3)
-
-    # Use a multi-resolution strategy
-    deformable_registration_method.SetShrinkFactorsPerLevel(shrinkFactors = [4,2,1])
-    deformable_registration_method.SetSmoothingSigmasPerLevel(smoothingSigmas = [2,1,0])
-    deformable_registration_method.SmoothingSigmasAreSpecifiedInPhysicalUnitsOn()
-
-    deformable_registration_method.SetInitialTransform(initial_deformable_transform)
-
-    print("********************************************************************************")
-    print("* Deformable registration                                                       ")
-    print("********************************************************************************")
-    deformable_registration_method.AddCommand(sitk.sitkIterationEvent, lambda: iteration_callback(deformable_registration_method))
-
-    final_deformable_transform = deformable_registration_method.Execute(sitk.Cast(fixed_image, sitk.sitkFloat32),
-                                                                        sitk.Cast(resampled_moving_image, sitk.sitkFloat32))
-
-
-# In[15]:
-
-    # Combine the affine and deformable transforms
-    composite_transform = sitk.CompositeTransform(fixed_image.GetDimension())
-    composite_transform.AddTransform(final_transform_v1)
-    composite_transform.AddTransform(final_deformable_transform)
-
-
-    sitk.WriteTransform(final_deformable_transform, output_path + "/deformable_transformation.tfm")
-    # sitk.WriteTransform(composite_transform, output_path + "/composite_transform.tfm")
-
-    # Resample the moving image onto the fixed image's grid using the composite transform
-    resampler = sitk.ResampleImageFilter()
-    resampler.SetReferenceImage(fixed_image)
-    resampler.SetTransform(composite_transform)
-    resampled_moving_image_deformable = resampler.Execute(resampled_moving_image)
-
-    writer.SetFileName(output_path + "/deformable_registration.mha")
-    writer.Execute(resampled_moving_image_deformable)
+# Call the deformable B-spline registration function
+final_deformable_transform, resampled_moving_image_deformable = perform_deformable_bspline_registration(
+    fixed_image, moving_image, output_path, final_transform_v1, resampled_moving_image)
 
 # Display the images after transformation
 display_images(fixed_image, "Fixed Image after Transformation")
 display_images(resampled_moving_image, "Resampled Moving Image after Transformation")
 # Generate checkerboard for B-Spline deformation
-# resampled_moving_image_deformable = sitk.ReadImage(output_path + "/deformable_registration.mha")
 checker_image_deformable = generate_checkerboard(fixed_image, resampled_moving_image_deformable)
 # Display the checkerboard image for B-Spline deformation
 display_images(checker_image_deformable, "Checkerboard for B-Spline deformation")
@@ -306,41 +190,11 @@ save_iso_surface(verts, faces, output_iso_surface_file_path)
 
 # In[16]:
 #  ## Apply Demons Algorithim.
-
-# Import the necessary filter
-
-# Define function to apply the Demons Registration algorithm
-def apply_demons_algorithm(fixed_image, moving_image, iterations=100):
-    demons_filter = DemonsRegistrationFilter()
-    demons_filter.SetNumberOfIterations(iterations)
-
-    print("********************************************************************************")
-    print("* Demons registration                                                           ")
-    print("********************************************************************************")
-    deformable_registration_method.AddCommand(sitk.sitkIterationEvent, lambda: iteration_callback(deformable_registration_method))
-
-    demons_transform = demons_filter.Execute(fixed_image, moving_image)
-    return demons_transform
-
-# Define function to resample the moving image with a given transform
-def resample_moving_image(fixed_image, moving_image, transform):
-    resampler = sitk.ResampleImageFilter()
-    resampler.SetReferenceImage(fixed_image)
-    resampler.SetTransform(transform)
-    return resampler.Execute(moving_image)
-
-# Set the paths for the output demons transformation and resampled image
-output_demons_transform_path = os.path.join(output_path, "demons_transformation.tfm")
-output_resampled_image_path = os.path.join(output_path, "resampled_moving_image_demons.mha")
-
-# Check if the transform already exists. If not, compute it.
-if os.path.exists(output_demons_transform_path):
-    demons_transform = sitk.ReadTransform(output_demons_transform_path)
-else:
-    demons_transform = apply_demons_algorithm(fixed_image, resampled_moving_image)
-    sitk.WriteTransform(demons_transform, output_demons_transform_path)
+# Call the Demons algorithm function
+demons_transform = apply_demons_algorithm(fixed_image, resampled_moving_image)
 
 # Check if the resampled moving image already exists. If not, compute it.
+output_resampled_image_path = os.path.join(output_path, "resampled_moving_image_demons.mha")
 if os.path.exists(output_resampled_image_path):
     resampled_moving_image_demons = sitk.ReadImage(output_resampled_image_path)
 else:
@@ -356,6 +210,7 @@ display_images(resampled_moving_image_demons, "Resampled Moving Image after Demo
 checker_image_demons = generate_checkerboard(fixed_image, resampled_moving_image_demons)
 # Display the checkerboard image for Demons registration
 display_images(checker_image_demons, "Checkerboard for Demons registration")
+
 
 # In[]:
 #Extracting the ISO Surfaces for Demons Algorithim
