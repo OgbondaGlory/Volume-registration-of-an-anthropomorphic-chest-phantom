@@ -166,7 +166,9 @@ bone_mask = segment_bones(ct_image)
 ## Display the bone segmentation in 3D and slices
 display_images(bone_mask, "Segmented Bones")
 
-
+# Save segmented lung and bone images
+sitk.WriteImage(lung_mask, os.path.join(output_path, "lung_segmentation.mhd"))
+sitk.WriteImage(bone_mask, os.path.join(output_path, "bone_segmentation.mhd"))
 # _______________________
 
 # ## Initial Alignment
