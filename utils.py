@@ -1,6 +1,5 @@
 import numpy as np
 import SimpleITK as sitk
-from skimage.measure import marching_cubes_lewiner
 from stl import mesh
 import matplotlib.pyplot as plt
 
@@ -118,8 +117,15 @@ def extract_iso_surface(image, level, smooth=0.0):
     # Convert SimpleITK image to numpy array
     image_array = sitk.GetArrayFromImage(image)
 
+    # Set the isosurface extraction parameters
+    iso_surface_extractor = sitk.MarchingCubes()
+    iso_surface_extractor.SetBackgroundValue(0)
+    iso_surface_extractor.SetValue(1, level)
+    iso_surface_extractor.SetInput(sitk.GetImageFromArray(image_array))
+
     # Extract iso-surfaces
-    verts, faces, _, _ = marching_cubes_lewiner(image_array, level=level, step_size=1, smoothing=smooth, allow_degenerate=False)
+    verts, faces = iso_surface_extractor.Execute()
+
     return verts, faces
 
 def save_iso_surface(verts, faces, filename):
