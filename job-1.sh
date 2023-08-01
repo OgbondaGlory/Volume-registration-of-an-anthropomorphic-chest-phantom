@@ -16,8 +16,8 @@
 #SBATCH --nodes=1
 #
 # Runtime of this jobs is less than 5 hours.
-#SBATCH --time=2:00:00
-#SBATCH --mem=10G
+#SBATCH --time=1:00:00
+#SBATCH --mem=5G
 
 module load python/3.10.4 CUDA/11.7
 export MPLBACKEND=pdf
