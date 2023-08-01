@@ -43,5 +43,5 @@ INPUT_DIR="4.000000-Lung 1.0-09229"
 OUTPUT_DIR="Result-4.000000-Lung 1.0-09229"
 
 date > $OUTPUT_DIR/recons_runtime
-./Deformable_Image_Registration-DNN.py  $INPUT_DIR   $OUTPUT_DIR
+./Deformable_Image_Registration.py  $INPUT_DIR $OUTPUT_DIR dnn
 date >> $OUTPUT_DIR/recons_runtime

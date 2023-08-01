@@ -2,6 +2,7 @@ import numpy as np
 import SimpleITK as sitk
 from stl import mesh
 import matplotlib.pyplot as plt
+import os
 
 
 
@@ -58,6 +59,12 @@ def segment_bones(image):
     return bone_mask_sitk
 
 
+def save_segmentation(mask, image_path, output_path, organ):
+    writer = sitk.ImageFileWriter()
+    mask_path = os.path.join(output_path, f"{os.path.basename(image_path)}_{organ}_mask.mha")
+    writer.SetFileName(mask_path)
+    writer.Execute(mask)
+    
 def load_dicom_series(directory_path):
     reader = sitk.ImageSeriesReader()
 #     print(directory_path)

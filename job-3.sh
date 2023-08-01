@@ -37,7 +37,7 @@ then
    mkdir Results
 fi
 
-for dataset in "Patient_CT_Scan_3" # "Patient_CT_Scan_2" "Patient_CT_Scan_3" "Patient_CT_Scan_4"
+for dataset in "Patient_CT_Scan_1" "Patient_CT_Scan_2" "Patient_CT_Scan_3" "Patient_CT_Scan_4"
 do
 
    if [ ! -d Results/$dataset ]
@@ -46,6 +46,6 @@ do
    fi
 
     echo "Registration of $dataset"
-    ./Deformable_Image_Registration.py $dataset Results/$dataset 
+    ./Deformable_Image_Registration.py $dataset Results/$dataset demons
 done
 

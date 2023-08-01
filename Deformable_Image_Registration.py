@@ -13,20 +13,28 @@ from DemonsRegistration import apply_demons_algorithm, resample_moving_image
 from DNNRegistration import apply_dnn_registration
 from TrainingDNN import train_dnn_model
 
-def Deformable_Image_Registration(patient_image_path, phantom_image_path, output_path, operation):
-    # Load the DICOM images
-    ct_image = load_dicom_series(phantom_image_path)
+def Deformable_Image_Registration(patient_image_path, phantom_image_path, output_path, operations):
+      # Load the DICOM images for both patient and phantom
+    patient_ct_image = load_dicom_series(patient_image_path)
+    phantom_ct_image = load_dicom_series(phantom_image_path)
 
     # Perform lung segmentation
     if operation == 'segment':
-        lung_mask = segment_lung(ct_image)
+        # Segment lung on both patient and phantom CT images
+        patient_lung_mask = segment_lung(patient_ct_image)
+        phantom_lung_mask = segment_lung(phantom_ct_image)
+
+        # Save lung segmentation results
+        save_segmentation(patient_lung_mask, patient_image_path, output_path, "lung")
+        save_segmentation(phantom_lung_mask, phantom_image_path, output_path, "lung")
 
         # Perform bone segmentation
-        bone_mask = segment_bones(ct_image)
+        patient_bone_mask = segment_bones(patient_ct_image)
+        phantom_bone_mask = segment_bones(phantom_ct_image)
 
-        # Save segmented lung and bone images
-        sitk.WriteImage(lung_mask, os.path.join(output_path, "lung_segmentation.mhd"))
-        sitk.WriteImage(bone_mask, os.path.join(output_path, "bone_segmentation.mhd"))
+        # Save bone segmentation results
+        save_segmentation(patient_bone_mask, patient_image_path, output_path, "bone")
+        save_segmentation(phantom_bone_mask, phantom_image_path, output_path, "bone")
 
     # Load the DICOM images
     fixed_image = load_dicom_series(patient_image_path)
@@ -115,9 +123,10 @@ if __name__ == "__main__":
     patient_image_path = sys.argv[1]
     phantom_image_path = r"Phantom_CT_Scan"
     output_path = sys.argv[2]
-    operation = sys.argv[3]
+    operations = sys.argv[3]
 
     if not os.path.exists(output_path):
         os.mkdir(output_path)
 
-    Deformable_Image_Registration(patient_image_path, phantom_image_path, output_path, operation)
+    for operation in operations:
+        Deformable_Image_Registration(patient_image_path, phantom_image_path, output_path, operation)
