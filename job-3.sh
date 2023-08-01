@@ -2,9 +2,9 @@
 #
 # Project/Account (use your own)
 #SBATCH -A scw2109
-#SBATCH --job-name=recons     # Job name
-#SBATCH --output recons-%j.out     # Job name
-#SBATCH --error  recons-%j.err     # Job name
+#SBATCH --job-name=demons     # Job name
+#SBATCH --output demons-%j.out     # Job name
+#SBATCH --error  demons-%j.err     # Job name
 #
 # Number of tasks per node
 #SBATCH --ntasks-per-node=1

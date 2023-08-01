@@ -2,9 +2,9 @@
 #
 # Project/Account (use your own)
 #SBATCH -A scw2109
-#SBATCH --job-name=recons     # Job name
-#SBATCH --output recons-%j.out     # Job name
-#SBATCH --error  recons-%j.err     # Job name
+#SBATCH --job-name=rigid_bslpine     # Job name
+#SBATCH --output rigid_bslpine-%j.out     # Job name
+#SBATCH --error  rigid_bslpine-%j.err     # Job name
 #
 # Number of tasks per node
 #SBATCH --ntasks-per-node=1
