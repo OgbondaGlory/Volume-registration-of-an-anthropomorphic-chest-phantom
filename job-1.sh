@@ -36,5 +36,5 @@ do
    fi
 
     echo "Segmentation of $dataset"
-    ./Deformable_Image_Registration.py $dataset Results/$dataset OPERATION segment
+    ./Deformable_Image_Registration.py $dataset Results/$dataset segment
 done
