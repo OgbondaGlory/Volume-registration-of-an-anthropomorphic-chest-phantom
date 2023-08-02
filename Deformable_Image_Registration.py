@@ -48,6 +48,7 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
         print("Rigid registration completed.")
         # Generate checkerboard for Rigid Registration
         checker_image = generate_checkerboard(fixed_image, resampled_moving_image)
+        save_images(checker_image, output_path, "checkerboard_rigid_registration")
         # Display the checkerboard image for Rigid Registration
         display_images(checker_image, "Checkerboard for Rigid Registration")
 
@@ -65,6 +66,7 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
         print("Deformable B-spline registration completed.")
         # Generate checkerboard for B-Spline deformation
         checker_image_deformable = generate_checkerboard(fixed_image, resampled_moving_image_deformable)
+        save_images(checker_image_deformable, output_path, "checkerboard_bspline_deformation")
         # Display the checkerboard image for B-Spline deformation
         display_images(checker_image_deformable, "Checkerboard for B-Spline deformation")
 
@@ -87,11 +89,17 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
             resampled_moving_image_demons = resample_moving_image(fixed_image, moving_image, demons_transform)
             writer.SetFileName(output_resampled_image_path)
             writer.Execute(resampled_moving_image_demons)
+            
+        # Save the demons transformation
+        output_demons_transform_path = os.path.join(output_path, "demons_transformation.tfm")
+        sitk.WriteTransform(demons_transform, output_demons_transform_path)
+
         # Display the images after transformation
         display_images(fixed_image, "Fixed Image after Demons Transformation")
         display_images(resampled_moving_image_demons, "Resampled Moving Image after Demons Transformation")
         # Generate checkerboard for Demons registration
         checker_image_demons = generate_checkerboard(fixed_image, resampled_moving_image_demons)
+        save_images(checker_image_demons, output_path, "checkerboard_demons_registration")
         # Display the checkerboard image for Demons registration
         display_images(checker_image_demons, "Checkerboard for Demons registration")
 
@@ -112,6 +120,7 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
         print("CNNS registration completed.")
         # Generate checkerboard for CNN registration
         checker_image_cnn = generate_checkerboard(fixed_image, transformed_moving_image)
+        save_images(checker_image_cnn, output_path, "checkerboard_cnn_registration")
         # Display the checkerboard image for CNN registration
         display_images(checker_image_cnn, "Checkerboard for CNN registration")
 

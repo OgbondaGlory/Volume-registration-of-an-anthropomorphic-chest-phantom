@@ -93,6 +93,10 @@ def display_images(image, title, montage_slices=10):
         plt.axis('off')
     plt.show()
 
+def save_images(image, output_path, name):
+    output_file_path = os.path.join(output_path, name + '.mha')
+    sitk.WriteImage(image, output_file_path)
+
 
 # Define a simple callback which allows us to monitor registration progress.
 def iteration_callback(filter):
