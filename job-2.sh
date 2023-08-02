@@ -2,9 +2,9 @@
 #
 # Project/Account (use your own)
 #SBATCH -A scw2109
-#SBATCH --job-name=rigid_bslpine     # Job name
-#SBATCH --output rigid_bslpine-%j.out     # Job name
-#SBATCH --error  rigid_bslpine-%j.err     # Job name
+#SBATCH --job-name=rigid     # Job name
+#SBATCH --output rigid-%j.out     # Job name
+#SBATCH --error  rigid-%j.err     # Job name
 #
 # Number of tasks per node
 #SBATCH --ntasks-per-node=1
@@ -46,7 +46,7 @@ do
       mkdir Results/$dataset
    fi
 
-    echo "Registration of $dataset"
-    ./Deformable_Image_Registration.py $dataset Results/$dataset rigid bspline
+    echo "Rigid Registration of $dataset"
+    ./Deformable_Image_Registration.py $dataset Results/$dataset rigid 
 done
 

@@ -2,9 +2,9 @@
 #
 # Project/Account (use your own)
 #SBATCH -A scw2109
-#SBATCH --job-name=demons     # Job name
-#SBATCH --output demons-%j.out     # Job name
-#SBATCH --error  demons-%j.err     # Job name
+#SBATCH --job-name=bspline     # Job name
+#SBATCH --output bspline-%j.out     # Job name
+#SBATCH --error  bspline-%j.err     # Job name
 #
 # Number of tasks per node
 #SBATCH --ntasks-per-node=1
@@ -45,7 +45,7 @@ do
       mkdir Results/$dataset
    fi
 
-    echo "Registration of $dataset"
-    ./Deformable_Image_Registration.py $dataset Results/$dataset demons
+    echo "B-spline Registration of $dataset"
+    ./Deformable_Image_Registration.py $dataset Results/$dataset bspline
 done
 

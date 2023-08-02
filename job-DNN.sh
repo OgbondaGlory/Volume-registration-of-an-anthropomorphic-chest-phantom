@@ -39,9 +39,20 @@ python3 -m pip install --user torch scipy voxelmorph
 
 export MPLBACKEND=pdf
 
-INPUT_DIR="4.000000-Lung 1.0-09229"
-OUTPUT_DIR="Result-4.000000-Lung 1.0-09229"
+if [ ! -d Results ]
+then
+   mkdir Results
+fi
 
-date > $OUTPUT_DIR/recons_runtime
-./Deformable_Image_Registration.py  $INPUT_DIR $OUTPUT_DIR dnn
-date >> $OUTPUT_DIR/recons_runtime
+for dataset in "Patient_CT_Scan_1" "Patient_CT_Scan_2" "Patient_CT_Scan_3" "Patient_CT_Scan_4"
+do
+
+   if [ ! -d Results/$dataset ]
+   then
+      mkdir Results/$dataset
+   fi
+
+    echo "DNN Registration of $dataset"
+    ./Deformable_Image_Registration.py $dataset Results/$dataset dnn
+done
+
