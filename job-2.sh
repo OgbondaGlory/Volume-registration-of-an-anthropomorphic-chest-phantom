@@ -28,6 +28,7 @@ module load python/3.10.4 CUDA/11.7
 #python3 -m pip install --user matplotlib SimpleITK
 #python3 -m pip install --user voxelmorph
 
+#python3 -m pip install tensorflow-gpu
 
 
 export MPLBACKEND=pdf
