@@ -10,13 +10,13 @@
 #SBATCH --ntasks-per-node=1
 #
 # Number of cores per task
-#SBATCH --cpus-per-task=40
+#SBATCH --cpus-per-task=20
 #
 # Use one node
 #SBATCH --nodes=1
 #
 # Runtime of this jobs is less than 5 hours.
-#SBATCH --time=1:00:00
+#SBATCH --time=:40:00
 #SBATCH --mem=5G
 
 
