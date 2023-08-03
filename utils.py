@@ -62,6 +62,7 @@ def segment_bones(image):
 def save_segmentation(mask, image_path, output_path, organ):
     writer = sitk.ImageFileWriter()
     mask_path = os.path.join(output_path, f"{os.path.basename(image_path)}_{organ}_mask.mha")
+    print("Save ", mask_path)
     writer.SetFileName(mask_path)
     writer.Execute(mask)
     
