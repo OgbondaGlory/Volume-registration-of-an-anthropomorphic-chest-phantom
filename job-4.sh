@@ -16,7 +16,7 @@
 #SBATCH --nodes=1
 #
 # Runtime of this jobs is less than 5 hours.
-#SBATCH --time=48:00:00
+#SBATCH --time=72:00:00
 #SBATCH --mem=20G
 
 #source ./modules.sh
