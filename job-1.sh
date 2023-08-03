@@ -18,9 +18,11 @@
 # Runtime of this jobs is less than 5 hours.
 #SBATCH --time=1:00:00
 #SBATCH --mem=5G
-python3 -m pip install --user tensorflow-gpu
+
 
 module load python/3.10.4 CUDA/11.7
+python3 -m pip install --user tensorflow
+
 export MPLBACKEND=pdf
 
 if [ ! -d Results ]
