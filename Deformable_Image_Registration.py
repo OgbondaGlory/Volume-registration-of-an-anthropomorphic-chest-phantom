@@ -15,7 +15,7 @@ from TrainingDNN import train_dnn_model
 
 def Deformable_Image_Registration(patient_image_path, phantom_image_path, output_path, operation):
 
-    print(0)
+    # print(0)
     print(patient_image_path, phantom_image_path, output_path, operation)
     
     # Load the DICOM images for both patient and phantom
@@ -25,29 +25,29 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
     # Perform lung segmentation
     if operation == 'segment':
         # Segment lung on both patient and phantom CT images
-        print(1)
+        # print(1)
         patient_lung_mask = segment_lung(patient_ct_image)
-        print(2)
+        # print(2)
         phantom_lung_mask = segment_lung(phantom_ct_image)
-        print(3)
+        # print(3)
 
         # Save lung segmentation results
         save_segmentation(patient_lung_mask, patient_image_path, output_path, "lung")
-        print(4)
+        # print(4)
         save_segmentation(phantom_lung_mask, phantom_image_path, output_path, "lung")
-        print(5)
+        # print(5)
 
         # Perform bone segmentation
         patient_bone_mask = segment_bones(patient_ct_image)
-        print(6)
+        # print(6)
         phantom_bone_mask = segment_bones(phantom_ct_image)
-        print(7)
+        # print(7)
 
         # Save bone segmentation results
         save_segmentation(patient_bone_mask, patient_image_path, output_path, "bone")
-        print(8)
+        # print(8)
         save_segmentation(phantom_bone_mask, phantom_image_path, output_path, "bone")
-        print(9)
+        # print(9)
 
     else:
         # Load the DICOM images
