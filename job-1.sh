@@ -16,7 +16,7 @@
 #SBATCH --nodes=1
 #
 # Runtime of this jobs is less than 5 hours.
-#SBATCH --time=:40:00
+#SBATCH --time=0:40:00
 #SBATCH --mem=5G
 
 
