@@ -16,8 +16,8 @@
 #SBATCH --nodes=1
 #
 # Runtime of this jobs is less than 5 hours.
-#SBATCH --time=72:00:00
-#SBATCH --mem=20G
+#SBATCH --time=23:00:00
+#SBATCH --mem=10G
 
 #source ./modules.sh
 #module purge > /dev/null 2>&1
