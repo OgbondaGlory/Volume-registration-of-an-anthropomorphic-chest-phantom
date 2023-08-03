@@ -10,13 +10,13 @@
 #SBATCH --ntasks-per-node=1
 #
 # Number of cores per task
-#SBATCH --cpus-per-task=40
+#SBATCH --cpus-per-task=30
 #
 # Use one node
 #SBATCH --nodes=1
 #
 # Runtime of this jobs is less than 5 hours.
-#SBATCH --time=48:00:00
+#SBATCH --time=6:00:00
 #SBATCH --mem=10G
 
 #source ./modules.sh
