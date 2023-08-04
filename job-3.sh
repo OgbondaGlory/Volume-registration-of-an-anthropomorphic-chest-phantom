@@ -15,9 +15,14 @@
 # Use one node
 #SBATCH --nodes=1
 #
+# We ask for 1 tasks with 1 core only.
+# We ask for a GPU
+#SBATCH -p gpu_v100
+#SBATCH --gres=gpu:2
+#
 # Runtime of this jobs is less than 5 hours.
 #SBATCH --time=48:00:00
-#SBATCH --mem=20G
+#SBATCH --mem=80G
 
 #source ./modules.sh
 #module purge > /dev/null 2>&1
