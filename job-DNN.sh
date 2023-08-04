@@ -27,7 +27,7 @@
 #source ./modules.sh
 #module purge > /dev/null 2>&1
 #module load cmake compiler/gnu/8/1.0 CUDA python/3.7.0
-#python3 -m pip install tensorflow-gpu
+
 
 
 module load python/3.10.4
@@ -35,7 +35,7 @@ module load CUDA/11.7
 
 python3 -m pip install --user matplotlib SimpleITK
 python3 -m pip install --user torch scipy voxelmorph
-
+python3 -m pip install tensorflow-gpu
 
 
 export MPLBACKEND=pdf

@@ -131,8 +131,9 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
 
         elif operation == 'dnn':
             # Applying CNNS
-            phantom_directory_path = r"Phantom_CT_Scan"
-            patient_directory_path = r"Patient_CT_Scan"
+            # Use the paths passed to the function instead of hardcoding them
+            phantom_directory_path = phantom_image_path
+            patient_directory_path = patient_image_path
             
             print("Applying CNNS registration...")
             transformed_moving_image = apply_dnn_registration(output_path, phantom_directory_path, patient_directory_path)
