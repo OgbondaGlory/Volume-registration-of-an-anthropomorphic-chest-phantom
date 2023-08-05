@@ -8,8 +8,8 @@ from utils import *
 # DeformableBsplineRegistration.py
 
 def perform_deformable_bspline_registration(fixed_image, moving_image, output_path, final_transform_v1, resampled_moving_image):
-    print("Fixed Image Pixel Values - Min:", sitk.GetArrayViewFromImage(fixed_image).min(), "Max:", sitk.GetArrayViewFromImage(fixed_image).max())
-    print("Moving Image Pixel Values - Min:", sitk.GetArrayViewFromImage(moving_image).min(), "Max:", sitk.GetArrayViewFromImage(moving_image).max())
+    # print("Fixed Image Pixel Values - Min:", sitk.GetArrayViewFromImage(fixed_image).min(), "Max:", sitk.GetArrayViewFromImage(fixed_image).max())
+    # print("Moving Image Pixel Values - Min:", sitk.GetArrayViewFromImage(moving_image).min(), "Max:", sitk.GetArrayViewFromImage(moving_image).max())
 
     if os.path.exists(output_path + "/bspline_deformable_transformation.tfm") and os.path.exists(output_path + "/composite_transform.tfm") and os.path.exists(output_path + "/bspline_deformable_registration.mha"):
         final_deformable_transform = sitk.ReadTransform(output_path + "/bspline_deformable_transformation.mha")
