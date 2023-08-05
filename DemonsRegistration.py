@@ -51,8 +51,12 @@ def apply_demons_algorithm(fixed_image, moving_image, output_path, iterations=10
     return demons_transform, resampled_moving_image
 
 
-def resample_moving_image(fixed_image, moving_image, transform):
-    resampler = sitk.ResampleImageFilter()
-    resampler.SetReferenceImage(fixed_image)
-    resampler.SetTransform(transform)
-    return resampler.Execute(moving_image)
+def resample_moving_image(fixed_image, moving_image, displacement_field):
+    resampler = sitk.WarpImageFilter()
+    resampler.SetOutputSpacing(fixed_image.GetSpacing())
+    resampler.SetSize(fixed_image.GetSize())
+    resampler.SetOutputDirection(fixed_image.GetDirection())
+    resampler.SetOutputOrigin(fixed_image.GetOrigin())
+    resampler.SetInterpolator(sitk.sitkLinear)
+    resampled_moving_image = resampler.Execute(moving_image, displacement_field)
+    return resampled_moving_image
