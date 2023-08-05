@@ -17,6 +17,8 @@ def rescale_image(image, new_size):
     resampler.SetOutputDirection(image.GetDirection())
     return resampler.Execute(image)
 
+def iteration_callback(filter):
+    print('\r{0}'.format(filter.GetElapsedIterations()), end='')
 
 # DemonsRegistration.py
 
