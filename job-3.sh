@@ -18,11 +18,11 @@
 # We ask for 1 tasks with 1 core only.
 # We ask for a GPU
 #SBATCH -p gpu_v100
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:3
 #
 # Runtime of this jobs is less than 5 hours.
 #SBATCH --time=28:00:00
-#SBATCH --mem=80G
+#SBATCH --mem=30G
 
 #source ./modules.sh
 #module purge > /dev/null 2>&1
@@ -30,9 +30,24 @@
 
 
 module load python/3.10.4 CUDA/11.7
+
 #python3 -m pip install --user matplotlib SimpleITK
 #python3 -m pip install --user voxelmorph
 #python3 -m pip install tensorflow
+# Download the TensorRT package from NVIDIA's website
+wget https://developer.nvidia.com/compute/machine-learning/tensorrt/secure/7.2/local_repo/nv-tensorrt-repo-ubuntu1804-cuda11.0-trt7.2.1.6-ga-20201016_1-1_amd64.deb
+
+# Install the downloaded package
+sudo dpkg -i nv-tensorrt-repo-ubuntu1804-cuda11.0-trt7.2.1.6-ga-20201016_1-1_amd64.deb
+
+# Add the necessary keys
+sudo apt-key add /var/nv-tensorrt-repo-cuda11.0-trt7.2.1.6-ga-20201016/7fa2af80.pub
+
+# Update the APT package repository cache
+sudo apt-get update
+
+# Install TensorRT
+sudo apt-get install tensorrt
 
 
 
