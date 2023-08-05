@@ -45,6 +45,7 @@ def apply_demons_algorithm(fixed_image, moving_image, output_path, iterations=10
     writer = sitk.ImageFileWriter()
     writer.SetFileName(os.path.join(output_path, "demons_registration.mha"))
     writer.Execute(resampled_moving_image)
+    print(type(demons_transform))
     
     sitk.WriteTransform(demons_transform, os.path.join(output_path, "demons_transformation.tfm"))
     
