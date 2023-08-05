@@ -83,8 +83,8 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
                 resampled_moving_image_deformable = perform_deformable_bspline_registration(
                 fixed_image, moving_image, output_path, final_transform_v1, resampled_moving_image)
                  # Print the type of resampled_moving_image_deformable
-                print("Type of resampled_moving_image_deformable:", type(resampled_moving_image_deformable))
-                print("Value of resampled_moving_image_deformable:", resampled_moving_image_deformable)        
+                # print("Type of resampled_moving_image_deformable:", type(resampled_moving_image_deformable))
+                # print("Value of resampled_moving_image_deformable:", resampled_moving_image_deformable)        
                 print("Deformable B-spline registration completed.")
                 # Generate checkerboard for B-Spline deformation
                 checker_image_deformable = generate_checkerboard(fixed_image, resampled_moving_image_deformable)
@@ -93,7 +93,7 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
                 display_images(checker_image_deformable, "Checkerboard for B-Spline deformation")
 
                 # Extracting the ISO Surfaces for B-spline
-                output_resampled_image_path = os.path.join(output_path, "deformable_registration.mha")
+                output_resampled_image_path = os.path.join(output_path, "bspline_deformable_registration.mha")
                 output_iso_surface_file_path = os.path.join(output_path, "iso_surface_deformable.stl")
                 resampled_moving_image_deformable = sitk.ReadImage(output_resampled_image_path)
                 verts, faces = extract_iso_surface(resampled_moving_image_deformable, level=0.5, smooth=0.0)
@@ -101,41 +101,37 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
 
         elif operation == 'demons':
             print("Applying Demons algorithm...")
-               # Check if resampled_moving_image are defined
-            if 'resampled_moving_image' not in locals():
-                print("Performing preliminary rigid registration...")
-                resampled_moving_image = perform_rigid_registration(fixed_image, moving_image, output_path)
-               
-                demons_transform = apply_demons_algorithm(fixed_image, resampled_moving_image)
-                print("Demons algorithm completed.")
-
-                output_resampled_image_path = os.path.join(output_path, "resampled_moving_image_demons.mha")
-                if os.path.exists(output_resampled_image_path):
-                    resampled_moving_image_demons = sitk.ReadImage(output_resampled_image_path)
-                else:
-                    resampled_moving_image_demons = resample_moving_image(fixed_image, moving_image, demons_transform)
-                    writer.SetFileName(output_resampled_image_path)
-                    writer.Execute(resampled_moving_image_demons)
-                
-                # Save the demons transformation
-                output_demons_transform_path = os.path.join(output_path, "demons_transformation.tfm")
-                sitk.WriteTransform(demons_transform, output_demons_transform_path)
-
-                # Display the images after transformation
-                display_images(fixed_image, "Fixed Image after Demons Transformation")
-                display_images(resampled_moving_image_demons, "Resampled Moving Image after Demons Transformation")
-                # Generate checkerboard for Demons registration
-                checker_image_demons = generate_checkerboard(fixed_image, resampled_moving_image_demons)
-                save_images(checker_image_demons, output_path, "checkerboard_demons_registration")
-                # Display the checkerboard image for Demons registration
-                display_images(checker_image_demons, "Checkerboard for Demons registration")
-
-                # Extracting the ISO Surfaces for Demons
-                output_resampled_image_path = os.path.join(output_path, "resampled_moving_image_demons.mha")
-                output_iso_surface_file_path = os.path.join(output_path, "iso_surface_demons.stl")
+            
+            output_resampled_image_path = os.path.join(output_path, "demons_registration.mha")
+            output_demons_transform_path = os.path.join(output_path, "demons_transformation.tfm")
+            
+            if os.path.exists(output_resampled_image_path) and os.path.exists(output_demons_transform_path):
+                print("Found existing Demons transformation, reading from disk.")
                 resampled_moving_image_demons = sitk.ReadImage(output_resampled_image_path)
-                verts, faces = extract_iso_surface(resampled_moving_image_demons, level=0.5, smooth=0.0)
-                save_iso_surface(verts, faces, output_iso_surface_file_path)
+                demons_transform = sitk.ReadTransform(output_demons_transform_path)
+            else:
+                # Applying the Demons algorithm and saving the output
+                demons_transform, resampled_moving_image_demons = apply_demons_algorithm(fixed_image, moving_image, output_path)
+                print("Demons algorithm completed.")
+            
+            # Display the images after transformation
+            display_images(fixed_image, "Fixed Image after Demons Transformation")
+            display_images(resampled_moving_image_demons, "Resampled Moving Image after Demons Transformation")
+
+            # Generate checkerboard for Demons registration
+            checker_image_demons = generate_checkerboard(fixed_image, resampled_moving_image_demons)
+            save_images(checker_image_demons, output_path, "checkerboard_demons_registration")
+            
+            # Display the checkerboard image for Demons registration
+            display_images(checker_image_demons, "Checkerboard for Demons registration")
+
+            #
+            # Extracting the ISO Surfaces for Demons
+            output_resampled_image_path = os.path.join(output_path, "demons_registration.mha")
+            output_iso_surface_file_path = os.path.join(output_path, "iso_surface_demons.stl")
+            resampled_moving_image_demons = sitk.ReadImage(output_resampled_image_path)
+            verts, faces = extract_iso_surface(resampled_moving_image_demons, level=0.5, smooth=0.0)
+            save_iso_surface(verts, faces, output_iso_surface_file_path)
 
         elif operation == 'dnn':
             # Applying CNNS

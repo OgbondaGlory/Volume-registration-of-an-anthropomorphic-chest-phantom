@@ -11,12 +11,12 @@ def perform_deformable_bspline_registration(fixed_image, moving_image, output_pa
     print("Fixed Image Pixel Values - Min:", sitk.GetArrayViewFromImage(fixed_image).min(), "Max:", sitk.GetArrayViewFromImage(fixed_image).max())
     print("Moving Image Pixel Values - Min:", sitk.GetArrayViewFromImage(moving_image).min(), "Max:", sitk.GetArrayViewFromImage(moving_image).max())
 
-    if os.path.exists(output_path + "/deformable_transformation.tfm") and os.path.exists(output_path + "/composite_transform.tfm") and os.path.exists(output_path + "/deformable_registration.mha"):
-        final_deformable_transform = sitk.ReadTransform(output_path + "/deformable_transformation.mha")
+    if os.path.exists(output_path + "/bspline_deformable_transformation.tfm") and os.path.exists(output_path + "/composite_transform.tfm") and os.path.exists(output_path + "/bspline_deformable_registration.mha"):
+        final_deformable_transform = sitk.ReadTransform(output_path + "/bspline_deformable_transformation.mha")
         composite_transform = sitk.ReadTransform(output_path + "/composite_transform.mha")
 
         reader = sitk.ImageFileReader()
-        reader.SetFileName(output_path + "/deformable_registration.mha")
+        reader.SetFileName(output_path + "/bspline_deformable_registration.mha")
         resampled_moving_image_deformable = reader.Execute()
     else:
         # Now set up the deformable registration (B-spline)
@@ -57,7 +57,7 @@ def perform_deformable_bspline_registration(fixed_image, moving_image, output_pa
         composite_transform.AddTransform(final_transform_v1)
         composite_transform.AddTransform(final_deformable_transform)
 
-        sitk.WriteTransform(final_deformable_transform, output_path + "/deformable_transformation.tfm")
+        sitk.WriteTransform(final_deformable_transform, output_path + "/bspline_deformable_transformation.tfm")
 
         # Resample the moving image onto the fixed image's grid using the composite transform
         resampler = sitk.ResampleImageFilter()
@@ -66,7 +66,7 @@ def perform_deformable_bspline_registration(fixed_image, moving_image, output_pa
         resampled_moving_image_deformable = resampler.Execute(resampled_moving_image)
 
         writer = sitk.ImageFileWriter()
-        writer.SetFileName(output_path + "/deformable_registration.mha")
+        writer.SetFileName(output_path + "/bspline_deformable_registration.mha")
         writer.Execute(resampled_moving_image_deformable)
 
     print("Resampled Moving Image Pixel Values - Min:", sitk.GetArrayViewFromImage(resampled_moving_image_deformable).min(), "Max:", sitk.GetArrayViewFromImage(resampled_moving_image_deformable).max())
