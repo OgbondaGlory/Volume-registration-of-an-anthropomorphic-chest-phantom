@@ -21,8 +21,8 @@
 #SBATCH --gres=gpu:2
 #
 # Runtime of this jobs is less than 5 hours.
-#SBATCH --time=18:00:00
-#SBATCH --mem=20G
+#SBATCH --time=28:00:00
+#SBATCH --mem=60G
 
 #source ./modules.sh
 #module purge > /dev/null 2>&1
