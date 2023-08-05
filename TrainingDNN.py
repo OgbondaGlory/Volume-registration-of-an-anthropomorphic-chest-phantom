@@ -1,4 +1,5 @@
 # In[1]:
+import os
 import torch
 from torch.optim import Adam
 from voxelmorph.torch.networks import VxmDense

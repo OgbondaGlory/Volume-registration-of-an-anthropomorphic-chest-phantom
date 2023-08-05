@@ -83,7 +83,8 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
                 resampled_moving_image_deformable = perform_deformable_bspline_registration(
                 fixed_image, moving_image, output_path, final_transform_v1, resampled_moving_image)
                  # Print the type of resampled_moving_image_deformable
-                print("Type of resampled_moving_image_deformable:", type(resampled_moving_image_deformable))        
+                print("Type of resampled_moving_image_deformable:", type(resampled_moving_image_deformable))
+                print("Value of resampled_moving_image_deformable:", resampled_moving_image_deformable)        
                 print("Deformable B-spline registration completed.")
                 # Generate checkerboard for B-Spline deformation
                 checker_image_deformable = generate_checkerboard(fixed_image, resampled_moving_image_deformable)
