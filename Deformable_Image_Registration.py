@@ -100,16 +100,21 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
 
         elif operation == 'demons':
             print("Applying Demons algorithm...")
-            demons_transform = apply_demons_algorithm(fixed_image, resampled_moving_image)
-            print("Demons algorithm completed.")
+               # Check if resampled_moving_image are defined
+            if 'resampled_moving_image' not in locals():
+                print("Performing preliminary rigid registration...")
+                resampled_moving_image = perform_rigid_registration(fixed_image, moving_image, output_path)
+               
+                demons_transform = apply_demons_algorithm(fixed_image, resampled_moving_image)
+                print("Demons algorithm completed.")
 
-            output_resampled_image_path = os.path.join(output_path, "resampled_moving_image_demons.mha")
-            if os.path.exists(output_resampled_image_path):
-                resampled_moving_image_demons = sitk.ReadImage(output_resampled_image_path)
-            else:
-                resampled_moving_image_demons = resample_moving_image(fixed_image, moving_image, demons_transform)
-                writer.SetFileName(output_resampled_image_path)
-                writer.Execute(resampled_moving_image_demons)
+                output_resampled_image_path = os.path.join(output_path, "resampled_moving_image_demons.mha")
+                if os.path.exists(output_resampled_image_path):
+                    resampled_moving_image_demons = sitk.ReadImage(output_resampled_image_path)
+                else:
+                    resampled_moving_image_demons = resample_moving_image(fixed_image, moving_image, demons_transform)
+                    writer.SetFileName(output_resampled_image_path)
+                    writer.Execute(resampled_moving_image_demons)
                 
             # Save the demons transformation
             output_demons_transform_path = os.path.join(output_path, "demons_transformation.tfm")
