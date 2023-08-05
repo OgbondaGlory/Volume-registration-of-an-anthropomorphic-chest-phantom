@@ -116,25 +116,25 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
                     writer.SetFileName(output_resampled_image_path)
                     writer.Execute(resampled_moving_image_demons)
                 
-            # Save the demons transformation
-            output_demons_transform_path = os.path.join(output_path, "demons_transformation.tfm")
-            sitk.WriteTransform(demons_transform, output_demons_transform_path)
+                # Save the demons transformation
+                output_demons_transform_path = os.path.join(output_path, "demons_transformation.tfm")
+                sitk.WriteTransform(demons_transform, output_demons_transform_path)
 
-            # Display the images after transformation
-            display_images(fixed_image, "Fixed Image after Demons Transformation")
-            display_images(resampled_moving_image_demons, "Resampled Moving Image after Demons Transformation")
-            # Generate checkerboard for Demons registration
-            checker_image_demons = generate_checkerboard(fixed_image, resampled_moving_image_demons)
-            save_images(checker_image_demons, output_path, "checkerboard_demons_registration")
-            # Display the checkerboard image for Demons registration
-            display_images(checker_image_demons, "Checkerboard for Demons registration")
+                # Display the images after transformation
+                display_images(fixed_image, "Fixed Image after Demons Transformation")
+                display_images(resampled_moving_image_demons, "Resampled Moving Image after Demons Transformation")
+                # Generate checkerboard for Demons registration
+                checker_image_demons = generate_checkerboard(fixed_image, resampled_moving_image_demons)
+                save_images(checker_image_demons, output_path, "checkerboard_demons_registration")
+                # Display the checkerboard image for Demons registration
+                display_images(checker_image_demons, "Checkerboard for Demons registration")
 
-            # Extracting the ISO Surfaces for Demons
-            output_resampled_image_path = os.path.join(output_path, "resampled_moving_image_demons.mha")
-            output_iso_surface_file_path = os.path.join(output_path, "iso_surface_demons.stl")
-            resampled_moving_image_demons = sitk.ReadImage(output_resampled_image_path)
-            verts, faces = extract_iso_surface(resampled_moving_image_demons, level=0.5, smooth=0.0)
-            save_iso_surface(verts, faces, output_iso_surface_file_path)
+                # Extracting the ISO Surfaces for Demons
+                output_resampled_image_path = os.path.join(output_path, "resampled_moving_image_demons.mha")
+                output_iso_surface_file_path = os.path.join(output_path, "iso_surface_demons.stl")
+                resampled_moving_image_demons = sitk.ReadImage(output_resampled_image_path)
+                verts, faces = extract_iso_surface(resampled_moving_image_demons, level=0.5, smooth=0.0)
+                save_iso_surface(verts, faces, output_iso_surface_file_path)
 
         elif operation == 'dnn':
             # Applying CNNS
