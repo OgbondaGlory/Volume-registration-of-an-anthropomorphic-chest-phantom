@@ -7,7 +7,24 @@ from utils import *
 # In[2]:
 # DemonsRegistration.py
 
+# Function to rescale the image
+def rescale_image(image, new_size):
+    resampler = sitk.ResampleImageFilter()
+    resampler.SetSize(new_size)
+    resampler.SetOutputOrigin(image.GetOrigin())
+    resampler.SetOutputSpacing(
+        [old_sz * old_spc / new_sz for old_sz, old_spc, new_sz in zip(image.GetSize(), image.GetSpacing(), new_size)])
+    resampler.SetOutputDirection(image.GetDirection())
+    return resampler.Execute(image)
+
+
+# DemonsRegistration.py
+
 def apply_demons_algorithm(fixed_image, moving_image, output_path, iterations=100):
+    # Ensure that the moving image has the same size as the fixed image
+    new_size = fixed_image.GetSize()
+    moving_image = rescale_image(moving_image, new_size)
+
     demons_filter = sitk.DemonsRegistrationFilter()
     demons_filter.SetNumberOfIterations(iterations)
 
