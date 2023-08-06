@@ -76,25 +76,25 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
         elif operation == 'bspline':
             print("Performing deformable B-spline registration...")
             # Check if final_transform_v1 and resampled_moving_image are defined
-            if 'final_transform_v1' not in locals() or 'resampled_moving_image' not in locals():
-                print("Performing preliminary rigid registration...")
-                final_transform_v1, resampled_moving_image = perform_rigid_registration(fixed_image, moving_image, output_path)
-                print("Preliminary rigid registration completed.")
-                resampled_moving_image_deformable = perform_deformable_bspline_registration(
-                fixed_image, moving_image, output_path, final_transform_v1, resampled_moving_image)
-                print("Deformable B-spline registration completed.")
-                # Generate checkerboard for B-Spline deformation
-                checker_image_deformable = generate_checkerboard(fixed_image, resampled_moving_image_deformable)
-                save_images(checker_image_deformable, output_path, "checkerboard_bspline_deformation")
-                # Display the checkerboard image for B-Spline deformation
-                display_images(checker_image_deformable, "Checkerboard for B-Spline deformation")
+            # if 'final_transform_v1' not in locals() or 'resampled_moving_image' not in locals():
+            print("Performing preliminary rigid registration...")
+            final_transform_v1, resampled_moving_image = perform_rigid_registration(fixed_image, moving_image, output_path)
+            print("Preliminary rigid registration completed.")
+            resampled_moving_image_deformable = perform_deformable_bspline_registration(
+            fixed_image, moving_image, output_path, final_transform_v1, resampled_moving_image)
+            print("Deformable B-spline registration completed.")
+            # Generate checkerboard for B-Spline deformation
+            checker_image_deformable = generate_checkerboard(fixed_image, resampled_moving_image_deformable)
+            save_images(checker_image_deformable, output_path, "checkerboard_bspline_deformation")
+            # Display the checkerboard image for B-Spline deformation
+            display_images(checker_image_deformable, "Checkerboard for B-Spline deformation")
 
-                # Extracting the ISO Surfaces for B-spline
-                output_resampled_image_path = os.path.join(output_path, "bspline_deformable_registration.mha")
-                output_iso_surface_file_path = os.path.join(output_path, "iso_surface_deformable.stl")
-                resampled_moving_image_deformable = sitk.ReadImage(output_resampled_image_path)
-                verts, faces = extract_iso_surface(resampled_moving_image_deformable, level=0.5, smooth=0.0)
-                save_iso_surface(verts, faces, output_iso_surface_file_path)
+            # Extracting the ISO Surfaces for B-spline
+            output_resampled_image_path = os.path.join(output_path, "bspline_deformable_registration.mha")
+            output_iso_surface_file_path = os.path.join(output_path, "iso_surface_deformable.stl")
+            resampled_moving_image_deformable = sitk.ReadImage(output_resampled_image_path)
+            verts, faces = extract_iso_surface(resampled_moving_image_deformable, level=0.5, smooth=0.0)
+            save_iso_surface(verts, faces, output_iso_surface_file_path)
 
         elif operation == 'demons':
             print("Applying Demons algorithm...")
