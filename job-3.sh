@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 #
 # Project/Account (use your own)
 #SBATCH -A scw2109
@@ -17,7 +17,7 @@
 #
 # We ask for 1 tasks with 1 core only.
 # We ask for a GPU
-#SBATCH -p gpu_v100
+#SBATCH -p highmem
 #SBATCH --gres=gpu:2
 #
 # Runtime of this jobs is less than 5 hours.
@@ -49,8 +49,6 @@ sudo apt-get update
 # Install TensorRT
 sudo apt-get install tensorrt
 
-
-
 export MPLBACKEND=pdf
 
 if [ ! -d Results ]
@@ -60,7 +58,6 @@ fi
 
 for dataset in "Patient_CT_Scan_1" "Patient_CT_Scan_2" "Patient_CT_Scan_3" "Patient_CT_Scan_4"
 do
-
    if [ ! -d Results/$dataset ]
    then
       mkdir Results/$dataset
@@ -69,4 +66,3 @@ do
     echo "B-spline Registration of $dataset"
     ./Deformable_Image_Registration.py $dataset Results/$dataset bspline
 done
-
