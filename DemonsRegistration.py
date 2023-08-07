@@ -56,7 +56,6 @@ def resample_moving_image(fixed_image, moving_image, displacement_field):
     print("Debug info: ", type(fixed_image), fixed_image.GetSize())  # Debug line
     resampler = sitk.WarpImageFilter()
     resampler.SetOutputSpacing(fixed_image.GetSpacing())
-    resampler.SetSize(fixed_image.GetSize())  # The error occurred here
     resampler.SetOutputDirection(fixed_image.GetDirection())
     resampler.SetOutputOrigin(fixed_image.GetOrigin())
     resampler.SetInterpolator(sitk.sitkLinear)
