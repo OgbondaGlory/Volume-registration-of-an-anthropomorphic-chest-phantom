@@ -75,11 +75,18 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
 
         elif operation == 'bspline':
             print("Performing deformable B-spline registration...")
-            # Check if final_transform_v1 and resampled_moving_image are defined
-            # if 'final_transform_v1' not in locals() or 'resampled_moving_image' not in locals():
-            print("Performing preliminary rigid registration...")
-            final_transform_v1, resampled_moving_image = perform_rigid_registration(fixed_image, moving_image, output_path)
-            print("Preliminary rigid registration completed.")
+            # Check if final_transform_v1 and resampled_moving_image from rigid operation are available
+            rigid_transform_file = os.path.join(output_path, "rigid_transformation.tfm")
+            resampled_moving_image_file = os.path.join(output_path, "rigid_registration.mha")
+            if os.path.exists(rigid_transform_file) and os.path.exists(resampled_moving_image_file):
+                print("Loading results from previous rigid registration...")
+                final_transform_v1 = sitk.ReadTransform(rigid_transform_file)
+                resampled_moving_image = sitk.ReadImage(resampled_moving_image_file)
+            else:
+                print("Performing preliminary rigid registration...")
+                final_transform_v1, resampled_moving_image = perform_rigid_registration(fixed_image, moving_image, output_path)
+                print("Preliminary rigid registration completed.")
+                
             resampled_moving_image_deformable = perform_deformable_bspline_registration(
             fixed_image, moving_image, output_path, final_transform_v1, resampled_moving_image)
             print("Deformable B-spline registration completed.")
