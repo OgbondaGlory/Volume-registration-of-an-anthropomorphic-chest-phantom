@@ -132,7 +132,7 @@ def extract_iso_surface(image, level, smooth=0.0):
     image_array = sitk.GetArrayFromImage(image)
 
     # Extract iso-surfaces with skimage's marching cubes
-    verts, faces, _, _ = measure.marching_cubes_lewiner(image_array, level, step_size=1, allow_degenerate=True)
+    verts, faces, _, _ = measure.marching_cubes(image_array, level, step_size=1, allow_degenerate=True)
 
     return verts, faces
 
