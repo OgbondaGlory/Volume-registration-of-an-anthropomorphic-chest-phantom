@@ -3,6 +3,7 @@ import SimpleITK as sitk
 from stl import mesh
 import matplotlib.pyplot as plt
 import os
+from skimage import measure
 
 
 
@@ -125,18 +126,13 @@ def convert_to_sitk(image_array, original_image):
 
     return sitk_image
 
+
 def extract_iso_surface(image, level, smooth=0.0):
     # Convert SimpleITK image to numpy array
     image_array = sitk.GetArrayFromImage(image)
 
-    # Set the isosurface extraction parameters
-    iso_surface_extractor = sitk.MarchingCubes()
-    iso_surface_extractor.SetBackgroundValue(0)
-    iso_surface_extractor.SetValue(1, level)
-    iso_surface_extractor.SetInput(sitk.GetImageFromArray(image_array))
-
-    # Extract iso-surfaces
-    verts, faces = iso_surface_extractor.Execute()
+    # Extract iso-surfaces with skimage's marching cubes
+    verts, faces, _, _ = measure.marching_cubes_lewiner(image_array, level, step_size=1, allow_degenerate=True)
 
     return verts, faces
 
