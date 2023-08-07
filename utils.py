@@ -131,10 +131,16 @@ def extract_iso_surface(image, level, smooth=0.0):
     # Convert SimpleITK image to numpy array
     image_array = sitk.GetArrayFromImage(image)
 
+    # Check if level is within the range of the image_array values
+    min_val, max_val = image_array.min(), image_array.max()
+    if not (min_val <= level <= max_val):
+        raise ValueError(f"Level value ({level}) is outside the range of the image array ({min_val}-{max_val}).")
+
     # Extract iso-surfaces with skimage's marching cubes
     verts, faces, _, _ = measure.marching_cubes(image_array, level, step_size=1, allow_degenerate=True)
 
     return verts, faces
+
 
 def save_iso_surface(verts, faces, filename):
     # Create a mesh
