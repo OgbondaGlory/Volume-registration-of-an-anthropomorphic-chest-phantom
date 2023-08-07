@@ -22,8 +22,8 @@ def perform_deformable_bspline_registration(fixed_image, moving_image, output_pa
         # Now set up the deformable registration (B-spline)
         deformable_registration_method = sitk.ImageRegistrationMethod()
 
-        #  Change the metric to mutual information
-        deformable_registration_method.SetMetricAsMattesMutualInformation(numberOfHistogramBins=50)
+        # Change the metric to correlation
+        deformable_registration_method.SetMetricAsCorrelation()
 
 
         deformable_registration_method.SetOptimizerAsLBFGSB(gradientConvergenceTolerance=1e-5, numberOfIterations=100)
