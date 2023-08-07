@@ -7,6 +7,8 @@ from utils import *
 # In[2]:
 # DemonsRegistration.py
 
+# DemonsRegistration.py
+
 # Function to rescale the image
 def rescale_image(image, new_size):
     resampler = sitk.ResampleImageFilter()
@@ -20,8 +22,6 @@ def rescale_image(image, new_size):
 def iteration_callback(filter):
     print('\r{0}'.format(filter.GetElapsedIterations()), end='')
 
-# DemonsRegistration.py
-
 def apply_demons_algorithm(fixed_image, moving_image, output_path, iterations=100):
     # Ensure that the moving image has the same size as the fixed image
     new_size = fixed_image.GetSize()
@@ -33,7 +33,6 @@ def apply_demons_algorithm(fixed_image, moving_image, output_path, iterations=10
     print("********************************************************************************")
     print("* Demons registration                                                           ")
     print("********************************************************************************")
-    # You may need to adjust the callback function based on your specific implementation
     demons_filter.AddCommand(sitk.sitkIterationEvent, lambda: iteration_callback(demons_filter))
 
     demons_transform = demons_filter.Execute(fixed_image, moving_image)
@@ -41,13 +40,14 @@ def apply_demons_algorithm(fixed_image, moving_image, output_path, iterations=10
     # Resample the moving image using the demons transform
     resampled_moving_image = resample_moving_image(fixed_image, moving_image, demons_transform)
     
-    # Write out the resampled moving image and the demons transform
+    # Write out the resampled moving image and the displacement field
     writer = sitk.ImageFileWriter()
     writer.SetFileName(os.path.join(output_path, "demons_registration.mha"))
     writer.Execute(resampled_moving_image)
     print(type(demons_transform))
     
-    sitk.WriteTransform(demons_transform, os.path.join(output_path, "demons_transformation.tfm"))
+    # Save the displacement field as an image
+    sitk.WriteImage(demons_transform, os.path.join(output_path, "demons_displacement_field.mha"))
     
     return demons_transform, resampled_moving_image
 
