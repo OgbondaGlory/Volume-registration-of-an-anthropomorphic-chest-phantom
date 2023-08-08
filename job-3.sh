@@ -20,8 +20,8 @@
 #SBATCH -p highmem
 #
 # Runtime of this jobs is less than 5 hours.
-#SBATCH --time=28:00:00
-#SBATCH --mem=30G
+#SBATCH --time=72:00:00
+#SBATCH --mem=40G
 
 #source ./modules.sh
 #module purge > /dev/null 2>&1
