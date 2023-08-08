@@ -70,9 +70,13 @@ def perform_deformable_bspline_registration(fixed_image, moving_image, output_pa
     fixed_image = normalize_image(fixed_image)
     moving_image = normalize_image(moving_image)
 
+    # Convert the SimpleITK Image to a numpy array
+    fixed_image_array = sitk.GetArrayViewFromImage(fixed_image)
+    moving_image_array = sitk.GetArrayViewFromImage(moving_image)
+
     # Display the min and max pixel values for the fixed and moving images
-    print("Fixed Image Pixel Values - Min:", fixed_image.min(), "Max:", fixed_image.max())
-    print("Moving Image Pixel Values - Min:", moving_image.min(), "Max:", moving_image.max())
+    print("Fixed Image Pixel Values - Min:", fixed_image_array.min(), "Max:", fixed_image_array.max())
+    print("Moving Image Pixel Values - Min:", moving_image_array.min(), "Max:", moving_image_array.max())
 
     # Check if previous results exist to avoid redundant computation
     if os.path.exists(output_path + "/bspline_deformable_transformation.tfm") and \
