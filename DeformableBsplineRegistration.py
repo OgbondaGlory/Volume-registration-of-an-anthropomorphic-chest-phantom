@@ -36,8 +36,10 @@ def setup_deformable_registration(fixed_image):
     """
     deformable_registration_method = sitk.ImageRegistrationMethod()
 
-    # Use the Mean Absolute Error as the metric for optimization
-    deformable_registration_method.SetMetricAsMeanAbsoluteError()
+    # Use the correlation as the metric for optimization
+    deformable_registration_method.SetMetricAsCorrelation()
+
+
 
     # Use the LBFGSB optimization algorithm
     deformable_registration_method.SetOptimizerAsLBFGSB(gradientConvergenceTolerance=1e-5, numberOfIterations=100)
