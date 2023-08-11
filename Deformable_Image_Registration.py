@@ -58,7 +58,7 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
 
             if operation == 'rigid':
                 print("Performing rigid registration...")
-                final_transform_v1, resampled_moving_image = perform_rigid_registration(fixed_image, moving_image, output_path)
+                final_transform_v1, resampled_moving_image = perform_rigid_registration(fixed_image, moving_image, output_path, mask_name)
                 print("Rigid registration completed.")
                 # Generate checkerboard for Rigid Registration
                 checker_image = generate_checkerboard(fixed_image, resampled_moving_image)
@@ -85,11 +85,11 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
                     resampled_moving_image = sitk.ReadImage(resampled_moving_image_file)
                 else:
                     print("Performing preliminary rigid registration...")
-                    final_transform_v1, resampled_moving_image = perform_rigid_registration(fixed_image, moving_image, output_path)
+                    final_transform_v1, resampled_moving_image = perform_rigid_registration(fixed_image, moving_image, output_path, mask_name)
                     print("Preliminary rigid registration completed.")
                     
                 resampled_moving_image_deformable = perform_deformable_bspline_registration(
-                fixed_image, moving_image, output_path, final_transform_v1, resampled_moving_image)
+                fixed_image, moving_image, output_path, final_transform_v1, resampled_moving_image, mask_name)
                 print("Deformable B-spline registration completed.")
                 # Generate checkerboard for B-Spline deformation
                 checker_image_deformable = generate_checkerboard(fixed_image, resampled_moving_image_deformable)
@@ -116,7 +116,7 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
                     demons_transform = sitk.ReadTransform(output_demons_transform_path)
                 else:
                     # Applying the Demons algorithm and saving the output
-                    demons_transform, resampled_moving_image_demons = apply_demons_algorithm(fixed_image, moving_image, output_path)
+                    demons_transform, resampled_moving_image_demons = apply_demons_algorithm(fixed_image, moving_image, output_path, mask_name)
                     print("Demons algorithm completed.")
                 
                     # Display the images after transformation
@@ -145,7 +145,7 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
                 patient_directory_path = patient_image_path
                 
                 print("Applying CNNS registration...")
-                transformed_moving_image = apply_dnn_registration(output_path, phantom_directory_path, patient_directory_path)
+                transformed_moving_image = apply_dnn_registration(output_path, phantom_directory_path, patient_directory_path, mask_name)
                 print("CNNS registration completed.")
                 # Generate checkerboard for CNN registration
                 checker_image_cnn = generate_checkerboard(fixed_image, transformed_moving_image)

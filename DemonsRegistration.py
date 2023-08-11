@@ -22,7 +22,7 @@ def rescale_image(image, new_size):
 def iteration_callback(filter):
     print('\r{0}'.format(filter.GetElapsedIterations()), end='')
 
-def apply_demons_algorithm(fixed_image, moving_image, output_path, iterations=100):
+def apply_demons_algorithm(fixed_image, moving_image, output_path, mask_name, iterations=100):
     # Ensure that the moving image has the same size as the fixed image
     new_size = fixed_image.GetSize()
     moving_image = rescale_image(moving_image, new_size)
@@ -40,16 +40,20 @@ def apply_demons_algorithm(fixed_image, moving_image, output_path, iterations=10
     # Resample the moving image using the demons transform
     resampled_moving_image = resample_moving_image(fixed_image, moving_image, demons_transform)
     
-    # Write out the resampled moving image and the displacement field
+    # Construct the file paths based on the mask_name parameter
+    demons_registration_path = os.path.join(output_path, f"demons_registration_{mask_name}.mha")
+    demons_displacement_path = os.path.join(output_path, f"demons_displacement_field_{mask_name}.mha")
+    
+    # Write out the resampled moving image
     writer = sitk.ImageFileWriter()
-    writer.SetFileName(os.path.join(output_path, "demons_registration.mha"))
+    writer.SetFileName(demons_registration_path)
     writer.Execute(resampled_moving_image)
-    print(type(demons_transform))
     
     # Save the displacement field as an image
-    sitk.WriteImage(demons_transform, os.path.join(output_path, "demons_displacement_field.mha"))
+    sitk.WriteImage(demons_transform, demons_displacement_path)
     
     return demons_transform, resampled_moving_image
+
 
 
 def resample_moving_image(fixed_image, moving_image, displacement_field):
