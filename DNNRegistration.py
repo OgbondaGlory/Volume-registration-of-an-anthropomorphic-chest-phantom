@@ -89,17 +89,20 @@ def apply_displacement_field(moving_image_array, displacement_field):
 
 
 # In[3]:
-def apply_dnn_registration(output_path, phantom_directory_path, patient_directory_path, do_training=True):
-    print("Starting DNN Registration...")
-    if os.path.exists(output_path + "/model.pth") and not do_training:
+def apply_dnn_registration(output_path, phantom_directory_path, patient_directory_path, mask_name, do_training=True):
+    print(f"Starting DNN Registration for {mask_name} mask...")
+    
+    model_file_path = os.path.join(output_path, f"{mask_name}_model.pth")
+    
+    if os.path.exists(model_file_path) and not do_training:
         # Load the pre-trained model
-        print("Loading the pre-trained model...")
+        print(f"Loading the pre-trained {mask_name} model...")
         model = VxmDense(inshape=(256, 256, 256), nb_unet_features=[[32, 64, 128, 256, 512], [512, 256, 128, 64, 32]])
-        model.load_state_dict(torch.load(os.path.join(output_path, "model.pth")))
+        model.load_state_dict(torch.load(model_file_path))
     else:
         # Train the model if not already trained and save it
-        print("Training the DNN model...")
-        model = train_dnn_model(output_path, phantom_directory_path, patient_directory_path)
+        print(f"Training the DNN model for {mask_name} mask...")
+        model = train_dnn_model(output_path, phantom_directory_path, patient_directory_path, mask_name)
 
     # Load the phantom and patient CT scans
     print("Loading CT scan datasets...")
@@ -128,7 +131,8 @@ def apply_dnn_registration(output_path, phantom_directory_path, patient_director
 
     # Save the transformed moving image
     print("Saving the transformed moving image...")
-    output_transformed_image_path = os.path.join(output_path, "transformed_moving_image.mha")
+    # Save the transformed moving image with mask naming convention
+    output_transformed_image_path = os.path.join(output_path, f"transformed_moving_image_{mask_name}.mha")
     sitk.WriteImage(sitk.GetImageFromArray(warped_moving_image_array.squeeze()), output_transformed_image_path)
 
     # Extracting ISO Surfaces for CNNS
@@ -154,6 +158,6 @@ def apply_dnn_registration(output_path, phantom_directory_path, patient_director
     display_images(fixed_image_tensor.numpy().squeeze())
     display_images(warped_moving_image_array.squeeze())
     
-    print("DNN Registration completed.")
-    
+    print(f"DNN Registration completed for {mask_name} mask.")
+        
     return sitk.ReadImage(output_transformed_image_path)
