@@ -23,12 +23,19 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
     # Paths for segmentation masks
     patient_lung_mask_path = os.path.join(output_path, os.path.basename(patient_image_path) + "_lung_mask.mha")
     phantom_lung_mask_path = os.path.join(output_path, "Phantom_CT_Scan_lung_mask.mha")
+    
+    patient_bone_mask_path = os.path.join(output_path, os.path.basename(patient_image_path) + "_bone_mask.mha")
+    phantom_bone_mask_path = os.path.join(output_path, "Phantom_CT_Scan_bone_mask.mha")
 
     # Load or generate lung segmentation masks
     if os.path.exists(patient_lung_mask_path) and os.path.exists(phantom_lung_mask_path):
         # Load masks from disk
         patient_lung_mask = sitk.ReadImage(patient_lung_mask_path)
         phantom_lung_mask = sitk.ReadImage(phantom_lung_mask_path)
+        
+        # Load bone masks from disk
+        patient_bone_mask = sitk.ReadImage(patient_bone_mask_path)
+        phantom_bone_mask = sitk.ReadImage(phantom_bone_mask_path)
     else:
         if operation == 'segment':
             # Segment lung on both patient and phantom CT images
