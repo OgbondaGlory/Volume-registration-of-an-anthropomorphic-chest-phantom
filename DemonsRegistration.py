@@ -39,7 +39,8 @@ def apply_demons_algorithm(fixed_image, moving_image, output_path, mask_name, it
     
     # Resample the moving image using the demons transform
     resampled_moving_image = resample_moving_image(fixed_image, moving_image, demons_transform)
-    
+    print(sitk.GetArrayFromImage(resampled_moving_image).min(), sitk.GetArrayFromImage(resampled_moving_image).max())
+
     # Construct the file paths based on the mask_name parameter
     demons_registration_path = os.path.join(output_path, f"demons_registration_{mask_name}.mha")
     demons_displacement_path = os.path.join(output_path, f"demons_displacement_field_{mask_name}.mha")
