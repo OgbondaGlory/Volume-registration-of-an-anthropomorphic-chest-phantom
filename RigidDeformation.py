@@ -9,7 +9,9 @@ from utils import *
 # RigidDeformation.py
 
 def perform_rigid_registration(fixed_image, moving_image, output_path, mask_name):
-    
+    print("Fixed Image Intensity Range:", sitk.GetArrayFromImage(fixed_image).min(), sitk.GetArrayFromImage(fixed_image).max())
+    print("Moving Image Intensity Range:", sitk.GetArrayFromImage(moving_image).min(), sitk.GetArrayFromImage(moving_image).max())
+
     try:
         # Construct the file paths for saving and loading the results
         rigid_transform_path = os.path.join(output_path, f"rigid_transformation_{mask_name}.tfm")
@@ -59,6 +61,8 @@ def perform_rigid_registration(fixed_image, moving_image, output_path, mask_name
             writer = sitk.ImageFileWriter()
             writer.SetFileName(rigid_registration_image_path)
             writer.Execute(resampled_moving_image)
+            print("Fixed Image Intensity Range:", sitk.GetArrayFromImage(fixed_image).min(), sitk.GetArrayFromImage(fixed_image).max())
+            print("Moving Image Intensity Range:", sitk.GetArrayFromImage(moving_image).min(), sitk.GetArrayFromImage(resampled_moving_image).max())
 
         # Return the transformation and the resampled image
         return final_transform_v1, resampled_moving_image
