@@ -104,6 +104,8 @@ def save_images(image, output_path, name):
 def iteration_callback(filter):
     print('\r{0:.2f}'.format(filter.GetMetricValue()), end='')
 
+def generate_filename(base_path, operation, mask_name, ext="mha"):
+    return os.path.join(base_path, f"{operation}_registration_{mask_name}.{ext}")
 
 
 def generate_checkerboard(fixed_image, moving_image, pattern=(5,5,5)):

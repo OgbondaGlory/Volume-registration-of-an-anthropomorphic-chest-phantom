@@ -75,8 +75,8 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
                 display_images(checker_image, "Checkerboard for Rigid Registration")
 
                 # For ISO Surfaces for Rigid Registration
-                output_resampled_image_path = os.path.join(output_path, f"rigid_registration_{mask_name}_{idx}.mha")
-                output_iso_surface_file_path = os.path.join(output_path, f"iso_surface_rigid_{mask_name}.stl")
+                output_resampled_image_path = generate_filename(output_path, 'rigid', mask_name)
+                output_iso_surface_file_path = generate_filename(output_path, f"iso_surface_rigid_{mask_name}", "stl")
                 resampled_moving_image = sitk.ReadImage(output_resampled_image_path)
                 verts, faces = extract_iso_surface(resampled_moving_image, level=0.5, smooth=0.0)
                 save_iso_surface(verts, faces, output_iso_surface_file_path)
@@ -105,8 +105,8 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
                 display_images(checker_image_deformable, "Checkerboard for B-Spline deformation")
 
                 # Extracting the ISO Surfaces for B-spline
-                output_resampled_image_path = os.path.join(output_path, f"bspline_deformable_registration_{mask_name}_{idx}.mha")
-                output_iso_surface_file_path = os.path.join(output_path, f"iso_surface_deformable_{mask_name}.stl")
+                output_resampled_image_path = generate_filename(output_path, 'bspline_deformable', mask_name)
+                output_iso_surface_file_path = generate_filename(output_path, f"iso_surface_deformable_{mask_name}", "stl")
                 resampled_moving_image_deformable = sitk.ReadImage(output_resampled_image_path)
                 verts, faces = extract_iso_surface(resampled_moving_image_deformable, level=0.5, smooth=0.0)
                 save_iso_surface(verts, faces, output_iso_surface_file_path)
@@ -139,8 +139,8 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
 
                     #
                     # Extracting the ISO Surfaces for Demons
-                    output_resampled_image_path = os.path.join(output_path, f"demons_registration_{mask_name}_{idx}.mha")
-                    output_iso_surface_file_path = os.path.join(output_path, f"iso_surface_demons_{mask_name}.stl")
+                    output_resampled_image_path = generate_filename(output_path, 'demons', mask_name)
+                    output_iso_surface_file_path = generate_filename(output_path, f"iso_surface_demons_{mask_name}", "stl")
                     resampled_moving_image_demons = sitk.ReadImage(output_resampled_image_path)
                     verts, faces = extract_iso_surface(resampled_moving_image_demons, level=0.5, smooth=0.0)
                     save_iso_surface(verts, faces, output_iso_surface_file_path)
