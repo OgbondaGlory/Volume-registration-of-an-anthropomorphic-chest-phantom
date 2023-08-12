@@ -9,8 +9,20 @@ from utils import *
 
 # DemonsRegistration.py
 
-# Function to rescale the image
+import os
+import SimpleITK as sitk
+
 def rescale_image(image, new_size):
+    """
+    Rescale the given image to a new size.
+    
+    Parameters:
+    - image: SimpleITK image to be rescaled.
+    - new_size: Desired output size.
+    
+    Returns:
+    - Resampled image with new size.
+    """
     resampler = sitk.ResampleImageFilter()
     resampler.SetSize(new_size)
     resampler.SetOutputOrigin(image.GetOrigin())
@@ -19,54 +31,64 @@ def rescale_image(image, new_size):
     resampler.SetOutputDirection(image.GetDirection())
     return resampler.Execute(image)
 
-def iteration_callback(filter):
-    print('\r{0}'.format(filter.GetElapsedIterations()), end='')
-
-def apply_demons_algorithm(fixed_image, moving_image, output_path, mask_name, iterations=100):
+def apply_demons_algorithm(fixed_image, moving_image, output_path, mask_name, iterations=100, demons_std=1.0):
+    """
+    Apply the Demons registration algorithm to align moving_image with fixed_image.
     
-    print("Fixed Image Intensity Range:", sitk.GetArrayFromImage(fixed_image).min(), sitk.GetArrayFromImage(fixed_image).max())
-    print("Moving Image Intensity Range:", sitk.GetArrayFromImage(moving_image).min(), sitk.GetArrayFromImage(moving_image).max())
+    Parameters:
+    - fixed_image: Target image for registration.
+    - moving_image: Image to be registered.
+    - output_path: Directory path for saving the results.
+    - mask_name: Identifier for naming saved results.
+    - iterations: Number of iterations for the Demons algorithm.
+    - demons_std: Standard deviation for smoothing in Demons.
+    
+    Returns:
+    - Tuple containing the demons transform and the resampled moving image.
+    """
+    print("Fixed Image Intensity Range:", sitk.GetArrayFromImage(fixed_image).min(), 
+          sitk.GetArrayFromImage(fixed_image).max())
+    print("Moving Image Intensity Range:", sitk.GetArrayFromImage(moving_image).min(), 
+          sitk.GetArrayFromImage(moving_image).max())
 
-    # Ensure that the moving image has the same size as the fixed image
+    # Ensure moving image has the same size as the fixed image
     new_size = fixed_image.GetSize()
     moving_image = rescale_image(moving_image, new_size)
 
     demons_filter = sitk.DemonsRegistrationFilter()
     demons_filter.SetNumberOfIterations(iterations)
+    demons_filter.SetStandardDeviations(demons_std)
 
-    print("********************************************************************************")
-    print("* Demons registration                                                           ")
-    print("********************************************************************************")
-    demons_filter.AddCommand(sitk.sitkIterationEvent, lambda: iteration_callback(demons_filter))
-
-    demons_transform = demons_filter.Execute(fixed_image, moving_image)
+    demons_filter.AddCommand(sitk.sitkIterationEvent, lambda: print('\r{0}'.format(demons_filter.GetElapsedIterations()), end=''))
     
-    # Resample the moving image using the demons transform
+    demons_transform = demons_filter.Execute(fixed_image, moving_image)
     resampled_moving_image = resample_moving_image(fixed_image, moving_image, demons_transform)
-    print(sitk.GetArrayFromImage(resampled_moving_image).min(), sitk.GetArrayFromImage(resampled_moving_image).max())
 
-    # Construct the file paths based on the mask_name parameter
+    # Construct file paths
     demons_registration_path = os.path.join(output_path, f"demons_registration_{mask_name}.mha")
     demons_displacement_path = os.path.join(output_path, f"demons_displacement_field_{mask_name}.mha")
     
-    # Write out the resampled moving image
-    writer = sitk.ImageFileWriter()
-    writer.SetFileName(demons_registration_path)
-    writer.Execute(resampled_moving_image)
-    
-    # Save the displacement field as an image
+    # Write output
+    sitk.WriteImage(resampled_moving_image, demons_registration_path)
     sitk.WriteImage(demons_transform, demons_displacement_path)
     
     return demons_transform, resampled_moving_image
 
-
-
 def resample_moving_image(fixed_image, moving_image, displacement_field):
-    print("Debug info: ", type(fixed_image), fixed_image.GetSize())  # Debug line
+    """
+    Resample the moving image using the displacement field.
+    
+    Parameters:
+    - fixed_image: Target image for resampling.
+    - moving_image: Image to be resampled.
+    - displacement_field: Displacement field from Demons registration.
+    
+    Returns:
+    - Resampled moving image.
+    """
     resampler = sitk.WarpImageFilter()
     resampler.SetOutputSpacing(fixed_image.GetSpacing())
     resampler.SetOutputDirection(fixed_image.GetDirection())
     resampler.SetOutputOrigin(fixed_image.GetOrigin())
     resampler.SetInterpolator(sitk.sitkLinear)
-    resampled_moving_image = resampler.Execute(moving_image, displacement_field)
-    return resampled_moving_image
+    return resampler.Execute(moving_image, displacement_field)
