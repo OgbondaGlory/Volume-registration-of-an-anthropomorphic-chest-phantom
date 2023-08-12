@@ -23,6 +23,10 @@ def iteration_callback(filter):
     print('\r{0}'.format(filter.GetElapsedIterations()), end='')
 
 def apply_demons_algorithm(fixed_image, moving_image, output_path, mask_name, iterations=100):
+    
+    print("Fixed Image Intensity Range:", sitk.GetArrayFromImage(fixed_image).min(), sitk.GetArrayFromImage(fixed_image).max())
+    print("Moving Image Intensity Range:", sitk.GetArrayFromImage(moving_image).min(), sitk.GetArrayFromImage(moving_image).max())
+
     # Ensure that the moving image has the same size as the fixed image
     new_size = fixed_image.GetSize()
     moving_image = rescale_image(moving_image, new_size)
