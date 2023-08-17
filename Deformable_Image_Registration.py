@@ -58,7 +58,7 @@ def Deformable_Image_Registration(patient_image_path, phantom_image_path, output
     # Define masks for the two registration pipelines
     # For the demons registration, we will use the original grayscale images.
     # For other operations, we'll continue to use the masks.
-        if operation == 'demons':
+        if operation == 'bspline':
             fixed_images = [patient_ct_image, patient_ct_image]
             moving_images = [phantom_ct_image, phantom_ct_image]
         else:
