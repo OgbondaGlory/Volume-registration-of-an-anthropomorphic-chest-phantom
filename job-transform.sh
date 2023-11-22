@@ -11,14 +11,18 @@
 #SBATCH --ntasks-per-node=1
 #
 # Number of cores per task
-#SBATCH --cpus-per-task=20
+#SBATCH --cpus-per-task=40
 #
 # Use one node
 #SBATCH --nodes=1
 #
-# Runtime of this jobs is less than 1 hour.
-#SBATCH --time=0:01:00
-#SBATCH --mem=35G
+# We ask for 1 tasks with 1 core only.
+# We ask for a GPU
+#SBATCH -p highmem
+
+# Runtime of this jobs is less than 5 hours.
+#SBATCH --time=05:00:00
+#SBATCH --mem=40G
 
 # Load required modules
 module load python/3.10.4 CUDA/11.7
