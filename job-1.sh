@@ -2,6 +2,7 @@
 #
 # Project/Account (use your own)
 #SBATCH -A scw2109
+#SBATCH --mail-user=glory.ogbonda@bangor.ac.uk
 #SBATCH --job-name=segm     # Job name
 #SBATCH --output segm-%j.out     # Job name
 #SBATCH --error  segm-%j.err     # Job name

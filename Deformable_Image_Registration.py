@@ -12,6 +12,7 @@ from DeformableBsplineRegistration import perform_deformable_bspline_registratio
 from DemonsRegistration import apply_demons_algorithm, resample_moving_image
 from DNNRegistration import apply_dnn_registration
 from TrainingDNN import train_dnn_model
+from apply_transformations import apply_transformations_to_labels
 
 def Deformable_Image_Registration(patient_image_path, phantom_image_path, output_path, operation):
 
