@@ -2,6 +2,7 @@ import SimpleITK as sitk
 import os
 import sys
 
+
 def apply_transformations_to_labels(patient_directory, labels_directory, label_filename="labels.mha"):
     """
     Apply specified transformations to the labels file.
