@@ -4,13 +4,14 @@ import sys
 
 def apply_transformations_to_labels(patient_directory, labels_directory, label_filename="labels.mha"):
     """
-    Apply specified transformations to the labels file within a patient directory.
+    Apply specified transformations to the labels file.
 
     Args:
-        patient_directory (str): Base directory containing patient-specific data.
+        patient_directory (str): Directory containing patient-specific transformation files.
+        labels_directory (str): Directory containing the label file.
         label_filename (str): Filename of the label image to be transformed (default "labels.mha").
     """
-    label_path = os.path.join(patient_directory, label_filename)
+    label_path = os.path.join(labels_directory, label_filename)
     # Read the label image
     label_image = sitk.ReadImage(label_path)
 
@@ -43,8 +44,6 @@ def apply_transformations_to_labels(patient_directory, labels_directory, label_f
     transformed_label_path = os.path.join(patient_directory, "transformed_labels.mha")
     sitk.WriteImage(label_image, transformed_label_path)
     print(f"Transformed label image saved at {transformed_label_path}")
-
-
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
