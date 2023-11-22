@@ -17,8 +17,8 @@
 #SBATCH --nodes=1
 #
 # Runtime of this jobs is less than 1 hour.
-#SBATCH --time=1:00:00
-#SBATCH --mem=65G
+#SBATCH --time=0:01:00
+#SBATCH --mem=35G
 
 # Load required modules
 module load python/3.10.4 CUDA/11.7
@@ -29,7 +29,7 @@ export MPLBACKEND=pdf
 
 
 # Define the path to the labels directory
-LABELS_DIRECTORY="Phantom_CT_Scan_Segmentation/"  # Update this path
+LABELS_DIRECTORY="Phantom_CT_Scan_Segmentation/"  
 
 # Loop through patient datasets
 for dataset in "Patient_CT_Scan_1" "Patient_CT_Scan_2" "Patient_CT_Scan_3" "Patient_CT_Scan_4"
@@ -41,5 +41,5 @@ do
 
     echo "Applying transformations for $dataset"
     # Call the apply_transformations_to_labels function
-    python3 ./apply_transformations_to_labels.py Results/$dataset $LABELS_DIRECTORY
+    python3 ./apply_transformations.py Results/$dataset $LABELS_DIRECTORY
 done
