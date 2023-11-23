@@ -51,7 +51,7 @@ def apply_transformations_to_labels(patient_directory, labels_directory, dat_fil
     transformations = {
         "rigid_transformation_lung": "lung",
         "rigid_transformation_bone": "bone",
-        "rigid_registration": "full_ct"
+        "rigid_transformation": "full_ct"
     }
 
     for transform_file, transform_name in transformations.items():
