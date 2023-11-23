@@ -28,8 +28,9 @@ module load python/3.10.4 CUDA/11.7
 export MPLBACKEND=pdf
 
 
-# Define the path to the labels directory
-LABELS_DIRECTORY="Phantom_CT_Scan_Segmentation/"  
+# Define the path to the labels directory and .dat file
+LABELS_DIRECTORY="Phantom_CT_Scan_Segmentation/"
+DAT_FILE_PATH="Phantom_CT_Scan_Segmentation/map.dat"  # Replace with the actual path to your .dat file
 
 # Loop through patient datasets
 for dataset in "Patient_CT_Scan_1" "Patient_CT_Scan_2" "Patient_CT_Scan_3" "Patient_CT_Scan_4"
@@ -40,6 +41,6 @@ do
     fi
 
     echo "Applying transformations for $dataset"
-    # Call the apply_transformations_to_labels function
-    python3 ./apply_transformations.py Results/$dataset $LABELS_DIRECTORY
+    # Call the apply_transformations_to_labels function with all required arguments
+    python3 ./apply_transformations.py Results/$dataset $LABELS_DIRECTORY $DAT_FILE_PATH
 done
