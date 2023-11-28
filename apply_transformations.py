@@ -23,22 +23,33 @@ def apply_and_map_transformation(label_image, transform_path, label_to_hu, outpu
         print(f"Transformation file not found: {transform_path}")
         return
 
+    # Check data type and range before transformation
+    print(f"Original label image data type: {label_image.GetPixelIDTypeAsString()}")
+    original_array = sitk.GetArrayFromImage(label_image)
+    print(f"Original label image range: {np.min(original_array)} - {np.max(original_array)}")
+
     transform = sitk.ReadTransform(transform_path)
     transformed_label = sitk.Resample(label_image, label_image, transform, sitk.sitkNearestNeighbor, 0.0, label_image.GetPixelID())
 
     print(f"Mapping transformed labels to HU values for {transform_name}")
     transformed_label_array = sitk.GetArrayFromImage(transformed_label)
-    hu_mapped_array = np.copy(transformed_label_array)
+    print(f"Transformed label image range before mapping: {np.min(transformed_label_array)} - {np.max(transformed_label_array)}")
 
+    hu_mapped_array = np.copy(transformed_label_array)
     for label, hu_value in label_to_hu.items():
         hu_mapped_array[transformed_label_array == label] = hu_value
 
     hu_mapped_image = sitk.GetImageFromArray(hu_mapped_array)
     hu_mapped_image.CopyInformation(transformed_label)
 
+    # Check data type and range after mapping
+    print(f"Transformed HU-mapped image data type: {hu_mapped_image.GetPixelIDTypeAsString()}")
+    print(f"Transformed HU-mapped image range: {np.min(hu_mapped_array)} - {np.max(hu_mapped_array)}")
+
     transformed_label_path = os.path.join(output_path, f"transformed_hu_mapped_{transform_name}.mha")
     sitk.WriteImage(hu_mapped_image, transformed_label_path)
     print(f"Transformed HU-mapped label image saved at {transformed_label_path}")
+
 
 def apply_transformations_to_labels(patient_directory, labels_directory, dat_file_path, label_filename="labels.mha"):
     print(f"Reading label image from {labels_directory}")
@@ -58,7 +69,6 @@ def apply_transformations_to_labels(patient_directory, labels_directory, dat_fil
         transform_path = os.path.join(patient_directory, f"{transform_file}.tfm")
         apply_and_map_transformation(label_image, transform_path, label_to_hu, patient_directory, transform_name)
 
-# Main script execution
 if __name__ == "__main__":
     if len(sys.argv) < 4:
         print("Usage: python apply_transformations_to_labels.py [patient_directory] [labels_directory] [dat_file_path]")
