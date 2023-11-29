@@ -15,15 +15,27 @@ def parse_dat_file(dat_file_path):
                 print(f"Mapping label {label} to HU value {hu_value}")
     return label_to_hu
 
-def apply_transformation(label_image, transform_path, transform_name):
-    print(f"Applying transformation: {transform_path}")
-    if not os.path.exists(transform_path):
+def read_and_display_tfm_file(transform_path):
+    try:
+        with open(transform_path, 'r') as tfm_file:
+            tfm_contents = tfm_file.read()
+        print(f"Contents of {transform_path}:\n{tfm_contents}")
+    except FileNotFoundError:
         print(f"Transformation file not found: {transform_path}")
+        return None
+    return tfm_contents
+
+def apply_transformation(label_image, transform_path, transform_name):
+    tfm_contents = read_and_display_tfm_file(transform_path)
+    if not tfm_contents:
         return None
 
     transform = sitk.ReadTransform(transform_path)
     print(f"Transform type: {type(transform).__name__}")
     print(f"Transform parameters: {transform.GetParameters()}")
+
+    # Additional checks for coordinate system alignment (if applicable)
+    # ...
 
     transformed_label = sitk.Resample(label_image, label_image, transform, sitk.sitkNearestNeighbor, 0.0, label_image.GetPixelID())
     return transformed_label
@@ -73,7 +85,8 @@ def apply_transformations_to_labels(patient_directory, labels_directory, dat_fil
     transform_name = "full_ct"
     transform_path = os.path.join(patient_directory, "rigid_transformation.tfm")
     transformed_label = apply_transformation(label_image, transform_path, transform_name)
-    map_to_hu_values(transformed_label, label_to_hu, transform_name, patient_directory)
+    if transformed_label:
+        map_to_hu_values(transformed_label, label_to_hu, transform_name, patient_directory)
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
