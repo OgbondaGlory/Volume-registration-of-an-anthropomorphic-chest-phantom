@@ -15,61 +15,46 @@ def parse_dat_file(dat_file_path):
                 print(f"Mapping label {label} to HU value {hu_value}")
     return label_to_hu
 
-def read_and_display_tfm_file(transform_path):
+def read_transform_parameters(transform_path):
     try:
         with open(transform_path, 'r') as tfm_file:
-            tfm_contents = tfm_file.read()
-        print(f"Contents of {transform_path}:\n{tfm_contents}")
+            lines = tfm_file.readlines()
+        for line in lines:
+            if 'Parameters:' in line:
+                parameters = line.split(':')[1].strip().split(' ')
+                parameters = [float(p) for p in parameters]
+                return parameters
     except FileNotFoundError:
         print(f"Transformation file not found: {transform_path}")
-        return None
-    return tfm_contents
+    return None
 
-def apply_transformation(label_image, transform_path, transform_name):
-    tfm_contents = read_and_display_tfm_file(transform_path)
-    if not tfm_contents:
-        return None
-
-    transform = sitk.ReadTransform(transform_path)
-    print(f"Transform type: {type(transform).__name__}")
-    print(f"Transform parameters: {transform.GetParameters()}")
-
-    # Additional checks for coordinate system alignment (if applicable)
-    # ...
-
+def apply_rigid_body_transformation(label_image, parameters, transform_name, output_path):
+    transform = sitk.Euler3DTransform()
+    transform.SetParameters(parameters[:6])
     transformed_label = sitk.Resample(label_image, label_image, transform, sitk.sitkNearestNeighbor, 0.0, label_image.GetPixelID())
-    return transformed_label
+    save_transformed_image(transformed_label, transform_name, output_path)
 
-def map_to_hu_values(transformed_label, label_to_hu, transform_name, output_path):
-    if transformed_label is None:
-        print(f"No transformation applied for {transform_name}. Skipping HU mapping.")
-        return
+def apply_translation_transformation(label_image, parameters, transform_name, output_path):
+    translation_params = parameters[3:6]  # Using only the translation part of the parameters
+    transform = sitk.TranslationTransform(3, translation_params)
+    transformed_label = sitk.Resample(label_image, label_image, transform, sitk.sitkNearestNeighbor, 0.0, label_image.GetPixelID())
+    save_transformed_image(transformed_label, transform_name, output_path)
 
-    transformed_label_array = sitk.GetArrayFromImage(transformed_label)
-    print(f"Transformed label image range before mapping: {np.min(transformed_label_array)} - {np.max(transformed_label_array)}")
-
-    hu_mapped_array = np.copy(transformed_label_array)
-    for label, hu_value in label_to_hu.items():
-        hu_mapped_array[transformed_label_array == label] = hu_value
-
-    hu_mapped_image = sitk.GetImageFromArray(hu_mapped_array)
-    hu_mapped_image.CopyInformation(transformed_label)
-
-    print(f"Transformed HU-mapped image data type: {hu_mapped_image.GetPixelIDTypeAsString()}")
-    print(f"Transformed HU-mapped image range: {np.min(hu_mapped_array)} - {np.max(hu_mapped_array)}")
-
-    transformed_label_path = os.path.join(output_path, f"transformed_hu_mapped_{transform_name}.mha")
-    sitk.WriteImage(hu_mapped_image, transformed_label_path)
-    print(f"Transformed HU-mapped label image saved at {transformed_label_path}")
-
-def test_transformation(label_image, output_path):
-    print("Applying a test transformation (slight translation)")
-    translation = sitk.TranslationTransform(3, (1.0, 1.0, 1.0))
-    transformed_label = sitk.Resample(label_image, label_image, translation, sitk.sitkNearestNeighbor, 0.0, label_image.GetPixelID())
-
-    transformed_label_path = os.path.join(output_path, "test_transformed.mha")
+def save_transformed_image(transformed_label, transform_name, output_path):
+    transformed_label_path = os.path.join(output_path, f"{transform_name}_transformed.mha")
     sitk.WriteImage(transformed_label, transformed_label_path)
-    print(f"Test transformed label image saved at {transformed_label_path}")
+    print(f"Transformed label image saved at {transformed_label_path}")
+
+def map_to_hu_values(label_image, label_to_hu, output_path):
+    label_array = sitk.GetArrayFromImage(label_image)
+    hu_mapped_array = np.copy(label_array)
+    for label, hu_value in label_to_hu.items():
+        hu_mapped_array[label_array == label] = hu_value
+    hu_mapped_image = sitk.GetImageFromArray(hu_mapped_array)
+    hu_mapped_image.CopyInformation(label_image)
+    hu_mapped_image_path = os.path.join(output_path, "hu_mapped_labels.mha")
+    sitk.WriteImage(hu_mapped_image, hu_mapped_image_path)
+    print(f"HU-mapped label image saved at {hu_mapped_image_path}")
 
 def apply_transformations_to_labels(patient_directory, labels_directory, dat_file_path, label_filename="labels.mha"):
     print(f"Reading label image from {labels_directory}")
@@ -78,15 +63,13 @@ def apply_transformations_to_labels(patient_directory, labels_directory, dat_fil
 
     print(f"Parsing .dat file: {dat_file_path}")
     label_to_hu = parse_dat_file(dat_file_path)
+    map_to_hu_values(label_image, label_to_hu, patient_directory)
 
-    # Test with a known transformation
-    test_transformation(label_image, patient_directory)
-
-    transform_name = "full_ct"
     transform_path = os.path.join(patient_directory, "rigid_transformation.tfm")
-    transformed_label = apply_transformation(label_image, transform_path, transform_name)
-    if transformed_label:
-        map_to_hu_values(transformed_label, label_to_hu, transform_name, patient_directory)
+    parameters = read_transform_parameters(transform_path)
+    if parameters:
+        apply_rigid_body_transformation(label_image, parameters, "rigid_body", patient_directory)
+        apply_translation_transformation(label_image, parameters, "translation", patient_directory)
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
