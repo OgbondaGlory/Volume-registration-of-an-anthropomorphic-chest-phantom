@@ -58,19 +58,19 @@ def resample_moving_image(moving_image, transform, fixed_image):
     resampler.SetTransform(transform)
     return resampler.Execute(moving_image)
 
-if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        raise IOError("Invalid cmd line,\nUsage: " + sys.argv[0] + " FIXED_IMAGE_PATH MOVING_IMAGE_PATH OUTPUT_PATH")
+# if __name__ == "__main__":
+#     if len(sys.argv) != 4:
+#         raise IOError("Invalid cmd line,\nUsage: " + sys.argv[0] + " FIXED_IMAGE_PATH MOVING_IMAGE_PATH OUTPUT_PATH")
 
-    fixed_image_path = sys.argv[1]
-    moving_image_path = sys.argv[2]
-    output_path = sys.argv[3]
+#     fixed_image_path = sys.argv[1]
+#     moving_image_path = sys.argv[2]
+#     output_path = sys.argv[3]
 
-    fixed_image = sitk.ReadImage(fixed_image_path)
-    moving_image = sitk.ReadImage(moving_image_path)
+#     fixed_image = sitk.ReadImage(fixed_image_path)
+#     moving_image = sitk.ReadImage(moving_image_path)
 
-    if not os.path.exists(output_path):
-        os.mkdir(output_path)
+#     if not os.path.exists(output_path):
+#         os.mkdir(output_path)
 
-    final_transform, resampled_image = perform_rigid_registration(fixed_image, moving_image, output_path)
-    # Additional code to process or display final_transform and resampled_image can be added here
+#     final_transform, resampled_image = perform_rigid_registration(fixed_image, moving_image, output_path)
+#     # Additional code to process or display final_transform and resampled_image can be added here
