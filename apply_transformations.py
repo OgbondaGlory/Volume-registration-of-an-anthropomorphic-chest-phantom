@@ -63,34 +63,33 @@ def load_patient_ct_scan(directory_path):
     return image
 
 def apply_transformations(patient_directories, labels_directory, dat_file_path, label_filename="labels.mha"):
-    original_label_image = sitk.ReadImage(os.path.join(labels_directory, label_filename))
+    label_path = os.path.join(labels_directory, label_filename)
+    original_label_image = sitk.ReadImage(label_path)
     label_to_hu = parse_dat_file(dat_file_path)
 
     for patient_directory in patient_directories:
         patient_ct_image = load_patient_ct_scan(patient_directory)
         if not patient_ct_image:
-            print(f"Skipping {patient_directory} due to missing CT scan")
             continue
 
         transform_path = os.path.join(patient_directory, "rigid_transformation.tfm")
         parameters = read_transform_parameters(transform_path)
         if not parameters:
-            print(f"Skipping {patient_directory} due to missing transformation parameters")
             continue
 
         patient_basename = os.path.basename(patient_directory)
         transformed_patient_dir = os.path.join("Results", patient_basename)
-        transformed_labels_dir = os.path.join("Results", patient_basename, "Transformed_Labels")
 
         os.makedirs(transformed_patient_dir, exist_ok=True)
-        os.makedirs(transformed_labels_dir, exist_ok=True)
 
         # Apply transformation to patient CT scan
-        apply_rigid_body_transformation(patient_ct_image, parameters, patient_basename + "_transformed", transformed_patient_dir)
+        patient_ct_transformed_name = f"{patient_basename}_patient_ct_transformed"
+        apply_rigid_body_transformation(patient_ct_image, parameters, patient_ct_transformed_name, transformed_patient_dir)
         
-        # Apply transformation to HU-mapped label image and save with a unique name in the patient's directory
+        # Apply transformation to HU-mapped label image and save with unique name
         hu_mapped_label_image = map_to_hu_values(original_label_image, label_to_hu, labels_directory)
-        apply_rigid_body_transformation(hu_mapped_label_image, parameters, patient_basename + "_labels_transformed", transformed_labels_dir)
+        label_transformed_name = f"{patient_basename}_labels_transformed"
+        apply_rigid_body_transformation(hu_mapped_label_image, parameters, label_transformed_name, labels_directory)
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
