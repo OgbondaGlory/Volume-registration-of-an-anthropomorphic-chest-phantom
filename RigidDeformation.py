@@ -36,7 +36,7 @@ def perform_rigid_registration(fixed_image, moving_image, output_path, mask_name
             # Initialization
             initial_transform = sitk.CenteredTransformInitializer(fixed_image,
                                                                 moving_image,
-                                                                sitk.Rigid3DTransform(),
+                                                                sitk.VersorRigid3DTransform(),
                                                                 sitk.CenteredTransformInitializerFilter.GEOMETRY)
             registration_method.SetInitialTransform(initial_transform, inPlace=False)
 
