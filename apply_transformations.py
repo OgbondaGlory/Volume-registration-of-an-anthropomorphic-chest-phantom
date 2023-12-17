@@ -63,6 +63,7 @@ def load_patient_ct_scan(directory_path):
     return image
 
 def apply_transformations(patient_directory, labels_directory, dat_file_path, label_filename="labels.mha"):
+    # Load and apply transformation to patient CT scan
     patient_ct_image = load_patient_ct_scan(patient_directory)
     if not patient_ct_image:
         return
@@ -88,3 +89,8 @@ if __name__ == "__main__":
 
     patient_directories = ["Patient_CT_Scan_1", "Patient_CT_Scan_2", "Patient_CT_Scan_3", "Patient_CT_Scan_4"]
     labels_directory = sys.argv[2]
+    dat_file_path = sys.argv[3]
+
+    for patient_directory in patient_directories:
+        full_patient_directory = os.path.join('.', patient_directory)
+        apply_transformations(full_patient_directory, labels_directory, dat_file_path)
