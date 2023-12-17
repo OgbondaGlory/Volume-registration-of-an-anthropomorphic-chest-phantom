@@ -28,22 +28,16 @@ def read_transform_parameters(transform_path):
         print(f"Transformation file not found: {transform_path}")
     return None
 
-def apply_rigid_body_transformation(label_image, parameters, transform_name, output_path):
+def apply_rigid_body_transformation(image, parameters, transform_name, output_path):
     transform = sitk.Euler3DTransform()
     transform.SetParameters(parameters[:6])
-    transformed_label = sitk.Resample(label_image, label_image, transform, sitk.sitkNearestNeighbor, 0.0, label_image.GetPixelID())
-    save_transformed_image(transformed_label, transform_name, output_path)
+    transformed_image = sitk.Resample(image, image, transform, sitk.sitkNearestNeighbor, 0.0, image.GetPixelID())
+    save_transformed_image(transformed_image, transform_name, output_path)
 
-def apply_translation_transformation(label_image, parameters, transform_name, output_path):
-    translation_params = parameters[3:6]  # Using only the translation part of the parameters
-    transform = sitk.TranslationTransform(3, translation_params)
-    transformed_label = sitk.Resample(label_image, label_image, transform, sitk.sitkNearestNeighbor, 0.0, label_image.GetPixelID())
-    save_transformed_image(transformed_label, transform_name, output_path)
-
-def save_transformed_image(transformed_label, transform_name, output_path):
-    transformed_label_path = os.path.join(output_path, f"{transform_name}_transformed.mha")
-    sitk.WriteImage(transformed_label, transformed_label_path)
-    print(f"Transformed label image saved at {transformed_label_path}")
+def save_transformed_image(transformed_image, transform_name, output_path):
+    transformed_image_path = os.path.join(output_path, f"{transform_name}_transformed.mha")
+    sitk.WriteImage(transformed_image, transformed_image_path)
+    print(f"Transformed image saved at {transformed_image_path}")
 
 def map_to_hu_values(label_image, label_to_hu, output_path):
     label_array = sitk.GetArrayFromImage(label_image)
@@ -56,27 +50,30 @@ def map_to_hu_values(label_image, label_to_hu, output_path):
     sitk.WriteImage(hu_mapped_image, hu_mapped_image_path)
     print(f"HU-mapped label image saved at {hu_mapped_image_path}")
 
-def apply_transformations_to_labels(patient_directory, labels_directory, dat_file_path, label_filename="labels.mha"):
-    print(f"Reading label image from {labels_directory}")
+def apply_transformations(patient_directory, labels_directory, dat_file_path, label_filename="labels.mha"):
+    # Apply transformation to labels
     label_path = os.path.join(labels_directory, label_filename)
     label_image = sitk.ReadImage(label_path)
-
-    print(f"Parsing .dat file: {dat_file_path}")
     label_to_hu = parse_dat_file(dat_file_path)
     map_to_hu_values(label_image, label_to_hu, patient_directory)
 
+    # Apply transformation to patient CT scan
+    patient_ct_path = os.path.join(patient_directory, "patient_ct.mha")  # Replace with actual patient CT file name
+    patient_ct_image = sitk.ReadImage(patient_ct_path)
+
+    # Read transform parameters and apply rigid body transformation
     transform_path = os.path.join(patient_directory, "rigid_transformation.tfm")
     parameters = read_transform_parameters(transform_path)
     if parameters:
-        apply_rigid_body_transformation(label_image, parameters, "rigid_body", patient_directory)
-        apply_translation_transformation(label_image, parameters, "translation", patient_directory)
+        apply_rigid_body_transformation(label_image, parameters, "rigid_body_labels", patient_directory)
+        apply_rigid_body_transformation(patient_ct_image, parameters, "rigid_body_patient_ct", patient_directory)
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
-        print("Usage: python apply_transformations_to_labels.py [patient_directory] [labels_directory] [dat_file_path]")
+        print("Usage: python apply_transformations.py [patient_directory] [labels_directory] [dat_file_path]")
         sys.exit(1)
 
     patient_directory = sys.argv[1]
     labels_directory = sys.argv[2]
     dat_file_path = sys.argv[3]
-    apply_transformations_to_labels(patient_directory, labels_directory, dat_file_path)
+    apply_transformations(patient_directory, labels_directory, dat_file_path)
