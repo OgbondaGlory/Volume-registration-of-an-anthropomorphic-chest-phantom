@@ -53,10 +53,14 @@ def map_to_hu_values(label_image, label_to_hu, output_path):
 def load_patient_ct_scan(directory_path):
     reader = sitk.ImageSeriesReader()
     dicom_names = reader.GetGDCMSeriesFileNames(directory_path)
-    if not dicom_names:
-        raise RuntimeError(f"No DICOM series found in directory: {directory_path}")
     reader.SetFileNames(dicom_names)
-    return reader.Execute()
+    try:
+        image = reader.Execute()
+    except RuntimeError as e:
+        print(f"RuntimeError: {e}")
+        print(f"Could not load DICOM series from directory: {directory_path}")
+        return None
+    return image
 
 def apply_transformations(patient_directory, labels_directory, dat_file_path, label_filename="labels.mha"):
     # Load and apply transformation to patient CT scan
@@ -80,7 +84,10 @@ if __name__ == "__main__":
         print("Usage: python apply_transformations.py [patient_directory] [labels_directory] [dat_file_path]")
         sys.exit(1)
 
-    patient_directory = sys.argv[1]
+    patient_directories = ["Patient_CT_Scan_1", "Patient_CT_Scan_2", "Patient_CT_Scan_3", "Patient_CT_Scan_4"]
     labels_directory = sys.argv[2]
     dat_file_path = sys.argv[3]
-    apply_transformations(patient_directory, labels_directory, dat_file_path)
+
+    for patient_directory in patient_directories:
+        apply_transformations(patient_directory, labels_directory, dat_file_path)
+
