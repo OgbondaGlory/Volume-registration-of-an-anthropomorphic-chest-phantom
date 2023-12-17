@@ -63,21 +63,23 @@ def load_patient_ct_scan(directory_path):
     return image
 
 def apply_transformations(patient_directory, labels_directory, dat_file_path, label_filename="labels.mha"):
-    # Load and apply transformation to patient CT scan
     patient_ct_image = load_patient_ct_scan(patient_directory)
+    if not patient_ct_image:
+        return
 
-    # Apply transformation to labels
     label_path = os.path.join(labels_directory, label_filename)
     label_image = sitk.ReadImage(label_path)
     label_to_hu = parse_dat_file(dat_file_path)
-    hu_mapped_label_image = map_to_hu_values(label_image, label_to_hu, patient_directory)
+    hu_mapped_label_image = map_to_hu_values(label_image, label_to_hu, labels_directory)
 
-    # Read transform parameters and apply rigid body transformation
     transform_path = os.path.join(patient_directory, "rigid_transformation.tfm")
     parameters = read_transform_parameters(transform_path)
     if parameters:
-        apply_rigid_body_transformation(hu_mapped_label_image, parameters, "rigid_body_labels", patient_directory)
-        apply_rigid_body_transformation(patient_ct_image, parameters, "rigid_body_patient_ct", patient_directory)
+        transformed_patient_dir = os.path.join("Results", patient_directory)
+        os.makedirs(transformed_patient_dir, exist_ok=True)
+
+        apply_rigid_body_transformation(patient_ct_image, parameters, f"{patient_directory}_patient_ct", transformed_patient_dir)
+        apply_rigid_body_transformation(hu_mapped_label_image, parameters, f"{patient_directory}_labels", transformed_patient_dir)
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
@@ -86,8 +88,3 @@ if __name__ == "__main__":
 
     patient_directories = ["Patient_CT_Scan_1", "Patient_CT_Scan_2", "Patient_CT_Scan_3", "Patient_CT_Scan_4"]
     labels_directory = sys.argv[2]
-    dat_file_path = sys.argv[3]
-
-    for patient_directory in patient_directories:
-        apply_transformations(patient_directory, labels_directory, dat_file_path)
-
