@@ -49,6 +49,11 @@ def map_to_hu_values(label_image, label_to_hu, output_path):
     hu_mapped_image_path = os.path.join(output_path, "hu_mapped_labels.mha")
     sitk.WriteImage(hu_mapped_image, hu_mapped_image_path)
     print(f"HU-mapped label image saved at {hu_mapped_image_path}")
+def load_patient_ct_scan(patient_directory):
+    reader = sitk.ImageSeriesReader()
+    dicom_names = reader.GetGDCMSeriesFileNames(patient_directory)
+    reader.SetFileNames(dicom_names)
+    return reader.Execute()
 
 def apply_transformations(patient_directory, labels_directory, dat_file_path, label_filename="labels.mha"):
     # Apply transformation to labels
@@ -57,9 +62,8 @@ def apply_transformations(patient_directory, labels_directory, dat_file_path, la
     label_to_hu = parse_dat_file(dat_file_path)
     map_to_hu_values(label_image, label_to_hu, patient_directory)
 
-    # Apply transformation to patient CT scan
-    patient_ct_path = os.path.join(patient_directory, "patient_ct.mha")  # Replace with actual patient CT file name
-    patient_ct_image = sitk.ReadImage(patient_ct_path)
+    # Load and apply transformation to patient CT scan
+    patient_ct_image = load_patient_ct_scan(patient_directory)
 
     # Read transform parameters and apply rigid body transformation
     transform_path = os.path.join(patient_directory, "rigid_transformation.tfm")
