@@ -35,20 +35,18 @@ def apply_rigid_body_transformation(image, parameters, transform_name, output_pa
     save_transformed_image(transformed_image, transform_name, output_path)
 
 def save_transformed_image(transformed_image, transform_name, output_path):
-    transformed_image_path = os.path.join(output_path, f"{transform_name}_transformed.mha")
+    transformed_image_path = os.path.join(output_path, f"{transform_name}.mha")
     sitk.WriteImage(transformed_image, transformed_image_path)
     print(f"Transformed image saved at {transformed_image_path}")
 
-def map_to_hu_values(label_image, label_to_hu, output_path):
+def map_to_hu_values(label_image, label_to_hu):
     label_array = sitk.GetArrayFromImage(label_image)
     hu_mapped_array = np.copy(label_array)
     for label, hu_value in label_to_hu.items():
         hu_mapped_array[label_array == label] = hu_value
     hu_mapped_image = sitk.GetImageFromArray(hu_mapped_array)
     hu_mapped_image.CopyInformation(label_image)
-    hu_mapped_image_path = os.path.join(output_path, "hu_mapped_labels.mha")
-    sitk.WriteImage(hu_mapped_image, hu_mapped_image_path)
-    print(f"HU-mapped label image saved at {hu_mapped_image_path}")
+    return hu_mapped_image
     
 def load_patient_ct_scan(directory_path):
     reader = sitk.ImageSeriesReader()
@@ -63,9 +61,9 @@ def load_patient_ct_scan(directory_path):
     return image
 
 def apply_transformations(patient_directories, labels_directory, dat_file_path, label_filename="labels.mha"):
-    label_path = os.path.join(labels_directory, label_filename)
-    original_label_image = sitk.ReadImage(label_path)
+    original_label_image = sitk.ReadImage(os.path.join(labels_directory, label_filename))
     label_to_hu = parse_dat_file(dat_file_path)
+    hu_mapped_label_image = map_to_hu_values(original_label_image, label_to_hu)
 
     for patient_directory in patient_directories:
         patient_ct_image = load_patient_ct_scan(patient_directory)
@@ -79,17 +77,15 @@ def apply_transformations(patient_directories, labels_directory, dat_file_path, 
 
         patient_basename = os.path.basename(patient_directory)
         transformed_patient_dir = os.path.join("Results", patient_basename)
+        transformed_labels_name = f"{patient_basename}_labels_transformed"
 
         os.makedirs(transformed_patient_dir, exist_ok=True)
 
         # Apply transformation to patient CT scan
-        patient_ct_transformed_name = f"{patient_basename}_patient_ct_transformed"
-        apply_rigid_body_transformation(patient_ct_image, parameters, patient_ct_transformed_name, transformed_patient_dir)
+        apply_rigid_body_transformation(patient_ct_image, parameters, f"{patient_basename}_patient_ct_transformed", transformed_patient_dir)
         
-        # Apply transformation to HU-mapped label image and save with unique name
-        hu_mapped_label_image = map_to_hu_values(original_label_image, label_to_hu, labels_directory)
-        label_transformed_name = f"{patient_basename}_labels_transformed"
-        apply_rigid_body_transformation(hu_mapped_label_image, parameters, label_transformed_name, labels_directory)
+        # Apply transformation to HU-mapped label image
+        apply_rigid_body_transformation(hu_mapped_label_image, parameters, transformed_labels_name, labels_directory)
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
