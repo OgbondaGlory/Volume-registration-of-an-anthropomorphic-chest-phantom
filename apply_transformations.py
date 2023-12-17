@@ -79,18 +79,21 @@ def apply_transformations(patient_directories, labels_directory, dat_file_path, 
             print(f"Skipping {patient_directory} due to missing transformation parameters")
             continue
 
-        transformed_patient_dir = os.path.join("Results", os.path.basename(patient_directory))
+        patient_basename = os.path.basename(patient_directory)
+        transformed_patient_dir = os.path.join("Results", patient_basename)
+        transformed_labels_dir = "Phantom_CT_Scan_Segmentation"
+
         os.makedirs(transformed_patient_dir, exist_ok=True)
 
-        # Unique filenames for each patient's transformed CT scan and labels
-        patient_ct_transformed_name = os.path.basename(patient_directory) + "_patient_ct_transformed"
-        labels_transformed_name = os.path.basename(patient_directory) + "_labels_transformed"
+        patient_ct_transformed_name = patient_basename + "_patient_ct_transformed"
+        labels_transformed_name = patient_basename + "_labels_transformed"
 
-        # Apply transformation to patient CT scan and labels
+        # Apply transformation to patient CT scan
         apply_rigid_body_transformation(patient_ct_image, parameters, patient_ct_transformed_name, transformed_patient_dir)
         
+        # Apply transformation to HU-mapped label image and save with a unique name
         hu_mapped_label_image = map_to_hu_values(original_label_image, label_to_hu, labels_directory)
-        apply_rigid_body_transformation(hu_mapped_label_image, parameters, labels_transformed_name, labels_directory)
+        apply_rigid_body_transformation(hu_mapped_label_image, parameters, labels_transformed_name, transformed_labels_dir)
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
