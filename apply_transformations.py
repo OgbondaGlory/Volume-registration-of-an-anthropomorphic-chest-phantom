@@ -53,9 +53,8 @@ def load_patient_ct_scan(directory_path):
 
 def apply_transformations(patient_directories, labels_directory, dat_file_path, label_filename="labels.mha"):
     label_path = os.path.join(labels_directory, label_filename)
-    label_image = sitk.ReadImage(label_path)
+    original_label_image = sitk.ReadImage(label_path)
     label_to_hu = parse_dat_file(dat_file_path)
-    hu_mapped_label_image = map_to_hu_values(label_image, label_to_hu, labels_directory)
 
     for patient_directory in patient_directories:
         patient_ct_image = load_patient_ct_scan(patient_directory)
@@ -67,13 +66,20 @@ def apply_transformations(patient_directories, labels_directory, dat_file_path, 
 
         if parameters:
             transformed_patient_dir = os.path.join("Results", os.path.basename(patient_directory))
+            transformed_labels_dir = "Phantom_CT_Scan_Segmentation"
+
             os.makedirs(transformed_patient_dir, exist_ok=True)
+            os.makedirs(transformed_labels_dir, exist_ok=True)
 
             patient_ct_transformed_name = os.path.basename(patient_directory) + "_patient_ct"
             labels_transformed_name = os.path.basename(patient_directory) + "_phantom_labels"
 
+            # Apply transformation to patient CT scan
             apply_rigid_body_transformation(patient_ct_image, parameters, patient_ct_transformed_name, transformed_patient_dir)
-            apply_rigid_body_transformation(hu_mapped_label_image, parameters, labels_transformed_name, labels_directory)
+            
+            # Apply transformation to HU-mapped label image
+            hu_mapped_label_image = map_to_hu_values(original_label_image, label_to_hu, labels_directory)
+            apply_rigid_body_transformation(hu_mapped_label_image, parameters, labels_transformed_name, transformed_labels_dir)
 
 def map_to_hu_values(label_image, label_to_hu, output_path):
     label_array = sitk.GetArrayFromImage(label_image)
