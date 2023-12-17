@@ -39,6 +39,17 @@ def save_transformed_image(transformed_image, transform_name, output_path):
     sitk.WriteImage(transformed_image, transformed_image_path)
     print(f"Transformed image saved at {transformed_image_path}")
 
+def map_to_hu_values(label_image, label_to_hu, output_path):
+    label_array = sitk.GetArrayFromImage(label_image)
+    hu_mapped_array = np.copy(label_array)
+    for label, hu_value in label_to_hu.items():
+        hu_mapped_array[label_array == label] = hu_value
+    hu_mapped_image = sitk.GetImageFromArray(hu_mapped_array)
+    hu_mapped_image.CopyInformation(label_image)
+    hu_mapped_image_path = os.path.join(output_path, "hu_mapped_labels.mha")
+    sitk.WriteImage(hu_mapped_image, hu_mapped_image_path)
+    print(f"HU-mapped label image saved at {hu_mapped_image_path}")
+    
 def load_patient_ct_scan(directory_path):
     reader = sitk.ImageSeriesReader()
     dicom_names = reader.GetGDCMSeriesFileNames(directory_path)
@@ -59,38 +70,27 @@ def apply_transformations(patient_directories, labels_directory, dat_file_path, 
     for patient_directory in patient_directories:
         patient_ct_image = load_patient_ct_scan(patient_directory)
         if not patient_ct_image:
+            print(f"Skipping {patient_directory} due to missing CT scan")
             continue
 
         transform_path = os.path.join(patient_directory, "rigid_transformation.tfm")
         parameters = read_transform_parameters(transform_path)
+        if not parameters:
+            print(f"Skipping {patient_directory} due to missing transformation parameters")
+            continue
 
-        if parameters:
-            transformed_patient_dir = os.path.join("Results", os.path.basename(patient_directory))
-            transformed_labels_dir = "Phantom_CT_Scan_Segmentation"
+        transformed_patient_dir = os.path.join("Results", os.path.basename(patient_directory))
+        os.makedirs(transformed_patient_dir, exist_ok=True)
 
-            os.makedirs(transformed_patient_dir, exist_ok=True)
-            os.makedirs(transformed_labels_dir, exist_ok=True)
+        # Unique filenames for each patient's transformed CT scan and labels
+        patient_ct_transformed_name = os.path.basename(patient_directory) + "_patient_ct_transformed"
+        labels_transformed_name = os.path.basename(patient_directory) + "_labels_transformed"
 
-            patient_ct_transformed_name = os.path.basename(patient_directory) + "_patient_ct"
-            labels_transformed_name = os.path.basename(patient_directory) + "_phantom_labels"
-
-            # Apply transformation to patient CT scan
-            apply_rigid_body_transformation(patient_ct_image, parameters, patient_ct_transformed_name, transformed_patient_dir)
-            
-            # Apply transformation to HU-mapped label image
-            hu_mapped_label_image = map_to_hu_values(original_label_image, label_to_hu, labels_directory)
-            apply_rigid_body_transformation(hu_mapped_label_image, parameters, labels_transformed_name, transformed_labels_dir)
-
-def map_to_hu_values(label_image, label_to_hu, output_path):
-    label_array = sitk.GetArrayFromImage(label_image)
-    hu_mapped_array = np.copy(label_array)
-    for label, hu_value in label_to_hu.items():
-        hu_mapped_array[label_array == label] = hu_value
-    hu_mapped_image = sitk.GetImageFromArray(hu_mapped_array)
-    hu_mapped_image.CopyInformation(label_image)
-    hu_mapped_image_path = os.path.join(output_path, "hu_mapped_labels.mha")
-    sitk.WriteImage(hu_mapped_image, hu_mapped_image_path)
-    print(f"HU-mapped label image saved at {hu_mapped_image_path}")
+        # Apply transformation to patient CT scan and labels
+        apply_rigid_body_transformation(patient_ct_image, parameters, patient_ct_transformed_name, transformed_patient_dir)
+        
+        hu_mapped_label_image = map_to_hu_values(original_label_image, label_to_hu, labels_directory)
+        apply_rigid_body_transformation(hu_mapped_label_image, parameters, labels_transformed_name, labels_directory)
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
