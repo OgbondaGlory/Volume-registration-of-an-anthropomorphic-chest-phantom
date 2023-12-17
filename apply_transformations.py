@@ -49,27 +49,30 @@ def map_to_hu_values(label_image, label_to_hu, output_path):
     hu_mapped_image_path = os.path.join(output_path, "hu_mapped_labels.mha")
     sitk.WriteImage(hu_mapped_image, hu_mapped_image_path)
     print(f"HU-mapped label image saved at {hu_mapped_image_path}")
-def load_patient_ct_scan(patient_directory):
+
+def load_patient_ct_scan(directory_path):
     reader = sitk.ImageSeriesReader()
-    dicom_names = reader.GetGDCMSeriesFileNames(patient_directory)
+    dicom_names = reader.GetGDCMSeriesFileNames(directory_path)
+    if not dicom_names:
+        raise RuntimeError(f"No DICOM series found in directory: {directory_path}")
     reader.SetFileNames(dicom_names)
     return reader.Execute()
 
 def apply_transformations(patient_directory, labels_directory, dat_file_path, label_filename="labels.mha"):
+    # Load and apply transformation to patient CT scan
+    patient_ct_image = load_patient_ct_scan(patient_directory)
+
     # Apply transformation to labels
     label_path = os.path.join(labels_directory, label_filename)
     label_image = sitk.ReadImage(label_path)
     label_to_hu = parse_dat_file(dat_file_path)
-    map_to_hu_values(label_image, label_to_hu, patient_directory)
-
-    # Load and apply transformation to patient CT scan
-    patient_ct_image = load_patient_ct_scan(patient_directory)
+    hu_mapped_label_image = map_to_hu_values(label_image, label_to_hu, patient_directory)
 
     # Read transform parameters and apply rigid body transformation
     transform_path = os.path.join(patient_directory, "rigid_transformation.tfm")
     parameters = read_transform_parameters(transform_path)
     if parameters:
-        apply_rigid_body_transformation(label_image, parameters, "rigid_body_labels", patient_directory)
+        apply_rigid_body_transformation(hu_mapped_label_image, parameters, "rigid_body_labels", patient_directory)
         apply_rigid_body_transformation(patient_ct_image, parameters, "rigid_body_patient_ct", patient_directory)
 
 if __name__ == "__main__":
