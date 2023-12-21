@@ -12,7 +12,6 @@ def parse_dat_file(dat_file_path):
                 label = int(parts[0])
                 hu_value = float(parts[1])
                 label_to_hu[label] = hu_value
-                print(f"Mapping label {label} to HU value {hu_value}")
     return label_to_hu
 
 def apply_rigid_body_transformation(image, parameters, transform_name, output_path):
@@ -20,11 +19,16 @@ def apply_rigid_body_transformation(image, parameters, transform_name, output_pa
     transform.SetParameters(parameters)
     transformed_image = sitk.Resample(image, image, transform, sitk.sitkNearestNeighbor, 0.0, image.GetPixelID())
     save_transformed_image(transformed_image, transform_name, output_path)
+    return transformed_image
 
 def save_transformed_image(transformed_image, transform_name, output_path):
     transformed_image_path = os.path.join(output_path, f"{transform_name}.mha")
     sitk.WriteImage(transformed_image, transformed_image_path)
     print(f"Transformed image saved at {transformed_image_path}")
+
+def print_intensity_range(image, description):
+    array = sitk.GetArrayFromImage(image)
+    print(f"{description} - Intensity Range: {array.min()} to {array.max()}")
 
 def map_to_hu_values(label_image, label_to_hu):
     label_array = sitk.GetArrayFromImage(label_image)
@@ -34,7 +38,7 @@ def map_to_hu_values(label_image, label_to_hu):
     hu_mapped_image = sitk.GetImageFromArray(hu_mapped_array)
     hu_mapped_image.CopyInformation(label_image)
     return hu_mapped_image
-    
+
 def load_patient_ct_scan(directory_path):
     reader = sitk.ImageSeriesReader()
     dicom_names = reader.GetGDCMSeriesFileNames(directory_path)
@@ -71,11 +75,15 @@ def apply_transformations(patient_directories, labels_directory, dat_file_path, 
 
         os.makedirs(transformed_patient_dir, exist_ok=True)
 
+        print(f"Applying transformations for {patient_basename}")
+
         # Apply transformation to patient CT scan
-        apply_rigid_body_transformation(patient_ct_image, transformation_parameters[patient_basename], f"{patient_basename}_patient_ct_transformed", transformed_patient_dir)
+        transformed_patient_ct = apply_rigid_body_transformation(patient_ct_image, transformation_parameters[patient_basename], f"{patient_basename}_patient_ct_transformed", transformed_patient_dir)
+        print_intensity_range(transformed_patient_ct, f"{patient_basename} Patient CT Transformed")
         
         # Apply transformation to HU-mapped label image
-        apply_rigid_body_transformation(hu_mapped_label_image, transformation_parameters[patient_basename], transformed_labels_name, labels_directory)
+        transformed_labels = apply_rigid_body_transformation(hu_mapped_label_image, transformation_parameters[patient_basename], transformed_labels_name, labels_directory)
+        print_intensity_range(transformed_labels, f"{patient_basename} Labels Transformed")
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
