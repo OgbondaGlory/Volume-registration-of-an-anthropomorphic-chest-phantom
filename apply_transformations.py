@@ -78,12 +78,12 @@ def apply_transformations(patient_directories, labels_directory, dat_file_path, 
         print(f"Applying transformations for {patient_basename}")
 
         # Apply transformation to patient CT scan
-        transformed_patient_ct = apply_rigid_body_transformation(patient_ct_image, transformation_parameters[patient_basename], f"{patient_basename}_patient_ct_transformed", transformed_patient_dir)
-        print_intensity_range(transformed_patient_ct, f"{patient_basename} Patient CT Transformed")
-        
+        patient_ct_transformed = apply_rigid_body_transformation(patient_ct_image, transformation_parameters[patient_basename], f"{patient_basename}_patient_ct_transformed", transformed_patient_dir)
+        print_intensity_range(patient_ct_transformed, f"{patient_basename} Patient CT Transformed")
+
         # Apply transformation to HU-mapped label image
-        transformed_labels = apply_rigid_body_transformation(hu_mapped_label_image, transformation_parameters[patient_basename], transformed_labels_name, labels_directory)
-        print_intensity_range(transformed_labels, f"{patient_basename} Labels Transformed")
+        labels_transformed = apply_rigid_body_transformation(hu_mapped_label_image, transformation_parameters[patient_basename], transformed_labels_name, labels_directory)
+        print_intensity_range(labels_transformed, f"{patient_basename} Labels Transformed")
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
