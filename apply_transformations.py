@@ -15,22 +15,9 @@ def parse_dat_file(dat_file_path):
                 print(f"Mapping label {label} to HU value {hu_value}")
     return label_to_hu
 
-def read_transform_parameters(transform_path):
-    try:
-        with open(transform_path, 'r') as tfm_file:
-            lines = tfm_file.readlines()
-        for line in lines:
-            if 'Parameters:' in line:
-                parameters = line.split(':')[1].strip().split(' ')
-                parameters = [float(p) for p in parameters]
-                return parameters
-    except FileNotFoundError:
-        print(f"Transformation file not found: {transform_path}")
-    return None
-
 def apply_rigid_body_transformation(image, parameters, transform_name, output_path):
     transform = sitk.Euler3DTransform()
-    transform.SetParameters(parameters[:6])
+    transform.SetParameters(parameters)
     transformed_image = sitk.Resample(image, image, transform, sitk.sitkNearestNeighbor, 0.0, image.GetPixelID())
     save_transformed_image(transformed_image, transform_name, output_path)
 
@@ -65,14 +52,17 @@ def apply_transformations(patient_directories, labels_directory, dat_file_path, 
     label_to_hu = parse_dat_file(dat_file_path)
     hu_mapped_label_image = map_to_hu_values(original_label_image, label_to_hu)
 
+    # Transformation parameters for each patient
+    transformation_parameters = {
+        "Patient_CT_Scan_1": [0.07053978264471022, 0.14542691932247254, -0.200145747020965, 12.181300043894305, -266.09215191725474, -369.6768396148839],
+        "Patient_CT_Scan_2": [0.17914905925900046, 0.07360253292956428, 0.051284094527928314, 12.183983363082502, -266.0828579001763, -369.6765028701566],
+        "Patient_CT_Scan_3": [-0.03354826985625253, 0.001676890142388851, -0.13090946880232018, 12.184485614354324, -266.07540718416936, -369.6741055482845],
+        "Patient_CT_Scan_4": [0.15152552307569356, 0.01593586177648574, 0.0823151630224306, -17.205840143098794, -134.32624521176442, -1909.2594367303343]
+    }
+
     for patient_directory in patient_directories:
         patient_ct_image = load_patient_ct_scan(patient_directory)
         if not patient_ct_image:
-            continue
-
-        transform_path = os.path.join(patient_directory, "rigid_transformation.tfm")
-        parameters = read_transform_parameters(transform_path)
-        if not parameters:
             continue
 
         patient_basename = os.path.basename(patient_directory)
@@ -82,10 +72,10 @@ def apply_transformations(patient_directories, labels_directory, dat_file_path, 
         os.makedirs(transformed_patient_dir, exist_ok=True)
 
         # Apply transformation to patient CT scan
-        apply_rigid_body_transformation(patient_ct_image, parameters, f"{patient_basename}_patient_ct_transformed", transformed_patient_dir)
+        apply_rigid_body_transformation(patient_ct_image, transformation_parameters[patient_basename], f"{patient_basename}_patient_ct_transformed", transformed_patient_dir)
         
         # Apply transformation to HU-mapped label image
-        apply_rigid_body_transformation(hu_mapped_label_image, parameters, transformed_labels_name, labels_directory)
+        apply_rigid_body_transformation(hu_mapped_label_image, transformation_parameters[patient_basename], transformed_labels_name, labels_directory)
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
