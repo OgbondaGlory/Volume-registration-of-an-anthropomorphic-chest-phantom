@@ -51,12 +51,22 @@ def load_patient_ct_scan(directory_path):
         return None
     return image
 
-def apply_transformations(patient_directories, labels_directory, dat_file_path, label_filename="labels.mha"):
+def apply_transformation(patient_directory, labels_directory, dat_file_path, label_filename="labels.mha"):
     original_label_image = sitk.ReadImage(os.path.join(labels_directory, label_filename))
     label_to_hu = parse_dat_file(dat_file_path)
     hu_mapped_label_image = map_to_hu_values(original_label_image, label_to_hu)
 
-    # Transformation parameters for each patient
+    patient_basename = os.path.basename(patient_directory)
+    transformed_patient_dir = os.path.join("Results", patient_basename)
+    transformed_labels_name = f"{patient_basename}_labels_transformed"
+
+    os.makedirs(transformed_patient_dir, exist_ok=True)
+
+    patient_ct_image = load_patient_ct_scan(patient_directory)
+    if not patient_ct_image:
+        return
+
+    # Transformation parameters for the patient
     transformation_parameters = {
         "Patient_CT_Scan_1": [0.07053978264471022, 0.14542691932247254, -0.200145747020965, 12.181300043894305, -266.09215191725474, -369.6768396148839],
         "Patient_CT_Scan_2": [0.17914905925900046, 0.07360253292956428, 0.051284094527928314, 12.183983363082502, -266.0828579001763, -369.6765028701566],
@@ -64,19 +74,8 @@ def apply_transformations(patient_directories, labels_directory, dat_file_path, 
         "Patient_CT_Scan_4": [0.15152552307569356, 0.01593586177648574, 0.0823151630224306, -17.205840143098794, -134.32624521176442, -1909.2594367303343]
     }
 
-    for patient_directory in patient_directories:
-        patient_ct_image = load_patient_ct_scan(patient_directory)
-        if not patient_ct_image:
-            continue
-
-        patient_basename = os.path.basename(patient_directory)
-        transformed_patient_dir = os.path.join("Results", patient_basename)
-        transformed_labels_name = f"{patient_basename}_labels_transformed"
-
-        os.makedirs(transformed_patient_dir, exist_ok=True)
-
+    if patient_basename in transformation_parameters:
         print(f"Applying transformations for {patient_basename}")
-
         # Apply transformation to patient CT scan
         patient_ct_transformed = apply_rigid_body_transformation(patient_ct_image, transformation_parameters[patient_basename], f"{patient_basename}_patient_ct_transformed", transformed_patient_dir)
         print_intensity_range(patient_ct_transformed, f"{patient_basename} Patient CT Transformed")
@@ -86,11 +85,11 @@ def apply_transformations(patient_directories, labels_directory, dat_file_path, 
         print_intensity_range(labels_transformed, f"{patient_basename} Labels Transformed")
 
 if __name__ == "__main__":
-    if len(sys.argv) < 4:
-        print("Usage: python apply_transformations.py [patient_directories] [labels_directory] [dat_file_path]")
+    if len(sys.argv) < 3:
+        print("Usage: python apply_transformation.py [patient_directory] [labels_directory] [dat_file_path]")
         sys.exit(1)
 
-    patient_directories = ["Patient_CT_Scan_1", "Patient_CT_Scan_2", "Patient_CT_Scan_3", "Patient_CT_Scan_4"]
+    patient_directory = sys.argv[1]
     labels_directory = sys.argv[2]
     dat_file_path = sys.argv[3]
-    apply_transformations(patient_directories, labels_directory, dat_file_path)
+    apply_transformation(patient_directory, labels_directory, dat_file_path)
