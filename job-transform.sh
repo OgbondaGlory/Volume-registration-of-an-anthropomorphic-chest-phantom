@@ -29,18 +29,13 @@ export MPLBACKEND=pdf
 
 
 # Define the path to the labels directory and .dat file
-LABELS_DIRECTORY="Phantom_CT_Scan_Segmentation/"
-DAT_FILE_PATH="Phantom_CT_Scan_Segmentation/map.dat"  # Replace with the actual path to your .dat file
 
-# Loop through patient datasets
+LABELS_DIRECTORY="Phantom_CT_Scan_Segmentation/"
+DAT_FILE_PATH="Phantom_CT_Scan_Segmentation/map.dat"
+
 for dataset in "Patient_CT_Scan_1" "Patient_CT_Scan_2" "Patient_CT_Scan_3" "Patient_CT_Scan_4"
 do
-    # Ensure the individual patient result directory exists
-    if [ ! -d Results/$dataset ]; then
-        mkdir Results/$dataset
-    fi
-
+    mkdir -p Results/$dataset
     echo "Applying transformations for $dataset"
-    # Call the apply_transformations_to_labels function with all required arguments
-    python3 ./apply_transformations.py Results/$dataset $LABELS_DIRECTORY $DAT_FILE_PATH
+    python3 ./apply_transformations.py $dataset $LABELS_DIRECTORY $DAT_FILE_PATH
 done
