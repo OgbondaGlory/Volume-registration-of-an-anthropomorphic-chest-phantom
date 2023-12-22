@@ -85,7 +85,7 @@ def apply_transformation(patient_directory, labels_directory, dat_file_path, lab
         print_intensity_range(labels_transformed, f"{patient_basename} Labels Transformed")
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 4:
         print("Usage: python apply_transformation.py [patient_directory] [labels_directory] [dat_file_path]")
         sys.exit(1)
 
